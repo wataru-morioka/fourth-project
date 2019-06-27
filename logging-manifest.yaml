@@ -1,0 +1,273 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-cluster
+spec:
+  type: ClusterIP
+  ports:
+    - name: elasticsearch
+      port: 9200
+      targetPort: 9200
+  selector:
+    app: elasticsearch
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: elasticsearch-pv-volume
+  labels:
+    type: elasticsearch
+spec:    
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  hostPath:
+    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/elasticsearch"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-pv-claim
+  #labels:
+  #  kubernetes.io/cluster-service: "true"
+spec:
+  selector:
+    matchLabels:
+      type: elasticsearch
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana-nodeport
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 8880
+      targetPort: 5601
+      nodePort: 32500
+  selector:
+    app: kibana
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  labels:
+    app: elasticsearch
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+        - image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.7.2
+          name: elasticsearch
+          ports:
+          - containerPort: 9200
+          env:
+            - name: cluster.name
+              value: elasticsearch-cluster
+            - name: bootstrap.memory_lock
+              value: "false"
+            #- name: cluster.routing.allocation.disk.threshold_enabled
+            #  value: "false"
+            - name: ES_JAVA_OPTS
+              value: -Xms512m -Xmx512m
+          resources:
+            limits:
+              memory: 1536Mi
+          volumeMounts:
+            - name: elasticsearch-persistent-storage
+              mountPath: /usr/share/elasticsearch/data
+      volumes:
+      - name: elasticsearch-persistent-storage
+        persistentVolumeClaim:
+          claimName: elasticsearch-pv-claim
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-conf
+data:
+  fluent.conf: |
+    #@include systemd.conf
+    @include kubernetes.conf
+    <match **>
+      @type elasticsearch
+      #@id out_es
+      #@log_level info
+      include_tag_key true
+      host "#{ENV['FLUENT_ELASTICSEARCH_HOST']}"
+      port "#{ENV['FLUENT_ELASTICSEARCH_PORT']}"
+      scheme "#{ENV['FLUENT_ELASTICSEARCH_SCHEME'] || 'http'}"
+      #ssl_verify "#{ENV['FLUENT_ELASTICSEARCH_SSL_VERIFY'] || 'true'}"
+      #user "#{ENV['FLUENT_ELASTICSEARCH_USER']}"
+      #password "#{ENV['FLUENT_ELASTICSEARCH_PASSWORD']}"
+      #logstash_prefix "#{ENV['FLUENT_ELASTICSEARCH_LOGSTASH_PREFIX'] || 'logstash'}"
+      reload_connections "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_CONNECTIONS'] || 'false'}"
+      reconnect_on_error "#{ENV['FLUENT_ELASTICSEARCH_RECONNECT_ON_ERROR'] || 'true'}"
+      reload_on_failure "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_ON_FAILURE'] || 'true'}"
+      flush_interval 2s
+      logstash_format true
+      type_name fluentd
+    </match>
+    
+  kubernetes.conf: |
+    <match fluent.**>
+      @type elasticsearch
+      #@id out_es
+      #@log_level info
+      host "#{ENV['FLUENT_ELASTICSEARCH_HOST']}"
+      port "#{ENV['FLUENT_ELASTICSEARCH_PORT']}"
+      scheme "#{ENV['FLUENT_ELASTICSEARCH_SCHEME'] || 'http'}"
+      reload_connections "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_CONNECTIONS'] || 'false'}"
+      reconnect_on_error "#{ENV['FLUENT_ELASTICSEARCH_RECONNECT_ON_ERROR'] || 'true'}"
+      reload_on_failure "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_ON_FAILURE'] || 'true'}"
+      include_tag_key true
+      logstash_format true
+      logstash_prefix fluent
+      flush_interval 2s
+      type_name fluentd
+    </match>
+    <match nginx.**>
+      @type elasticsearch
+      #@id out_es
+      #@log_level info
+      host "#{ENV['FLUENT_ELASTICSEARCH_HOST']}"
+      port "#{ENV['FLUENT_ELASTICSEARCH_PORT']}"
+      scheme "#{ENV['FLUENT_ELASTICSEARCH_SCHEME'] || 'http'}"
+      reload_connections "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_CONNECTIONS'] || 'false'}"
+      reconnect_on_error "#{ENV['FLUENT_ELASTICSEARCH_RECONNECT_ON_ERROR'] || 'true'}"
+      reload_on_failure "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_ON_FAILURE'] || 'true'}"
+      include_tag_key true
+      logstash_format true
+      logstash_prefix nginx
+      flush_interval 2s
+      type_name fluentd
+    </match>
+    #Target Logs (ex:nginx)
+    <source>
+      @type tail
+      #@id in_tail_container.logs
+      path "/var/log/nginx*.log"
+      #format /^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)" "(?<forwarder>[^\"]*)")?/
+      format /^(?<month>[^ ]*) (?<date>[^ ]*) (?<timestamp>[^ ]*) (?<pod>[^ ]*) (?<server>[^ ]*): (?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)" "(?<forwarder>[^\"]*)")?/
+      time_format %d/%b/%Y:%H:%M:%S %z
+      pos_file "/var/log/fluentd-nginx.log.pos"
+      tag "nginx.*"
+      read_from_head true
+    </source>
+
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: fluentd
+  #namespace: kube-system
+  labels:
+    app: fluentd
+    #kubernetes.io/cluster-service: "true"
+spec:
+  template:
+    metadata:
+      labels:
+        app: fluentd
+        #kubernetes.io/cluster-service: "true"
+    spec:
+      #tolerations:
+      #- key: node-role.kubernetes.io/master
+      #  effect: NoSchedule
+      containers:
+      - name: fluentd
+        image: fluent/fluentd-kubernetes-daemonset:v1.3.0-debian-elasticsearch
+        env:
+          - name: FLUENT_ELASTICSEARCH_HOST
+            value: "elasticsearch-cluster"
+          - name: FLUENT_ELASTICSEARCH_PORT
+            value: "9200"
+          - name: FLUENT_ELASTICSEARCH_SCHEME
+            value: "http"
+          #- name: FLUENT_UID
+          #  value: "0"
+          - name: FLUENT_ELASTICSEARCH_USER
+            value: none
+          - name: FLUENT_ELASTICSEARCH_PASSWORD
+            value: none
+        resources:
+          limits:
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - name: rsyslog
+          mountPath: /var/log
+        - name: fluentd-conf
+          mountPath: /fluentd/etc
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: rsyslog
+        hostPath:
+          path: /Users/moriokawataru/Kubernetes/PersistentVolume/log
+      - name: fluentd-conf
+        configMap:
+          name: fluentd-conf
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kibana
+  labels:
+    app: kibana
+    #kubernetes.io/cluster-service: "true"
+    #addonmanager.kubernetes.io/mode: Reconcile
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana-oss:6.7.2
+        ports:
+        - containerPort: 5601
+          name: ui
+          protocol: TCP
+        env:
+          - name: ELASTICSEARCH_URL
+            value: http://elasticsearch-cluster:9200
+        resources:
+          limits:
+            cpu: 300m
+          requests:
+            cpu: 100m

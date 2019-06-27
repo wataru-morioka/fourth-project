@@ -1,0 +1,5 @@
+/*.pem
+/*.json
+/instantclient_19_3/
+/gRPC/key/
+/gRPC/logs/

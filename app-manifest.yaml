@@ -1,0 +1,1220 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: manual
+provisioner:  kubernetes.io/no-provisioner
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-volume
+  labels:
+    type: redis
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain 
+  hostPath:
+    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/redis"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: oracle-pv-volume
+  labels:
+    type: oracle
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 7Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/Users/moriokawataru/Docker/ThirdProject/oracle"
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: postgre-pv-volume
+#   labels:
+#     type: postgre
+# spec:
+#   storageClassName: manual
+#   capacity:
+#     storage: 1Gi
+#   accessModes:
+#     - ReadWriteOnce
+#   persistentVolumeReclaimPolicy: Recycle
+#   hostPath:
+#     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/postgre"
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: mysql-pv-volume
+#   labels:
+#     type: mysql
+# spec:
+#   storageClassName: manual
+#   capacity:
+#     storage: 1Gi
+#   accessModes:
+#     - ReadWriteOnce
+#   persistentVolumeReclaimPolicy: Recycle
+#   hostPath:
+#     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/mysql"
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: rsyslog-pv-volume
+#   labels:
+#     type: rsyslog
+# spec:
+#   storageClassName: manual
+#   capacity:
+#     storage: 1Gi
+#   accessModes:
+#     - ReadWriteOnce
+#   persistentVolumeReclaimPolicy: Recycle
+#   hostPath:
+#     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/log"
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: go-log-pv-volume
+#   labels:
+#     type: go-log
+# spec:
+#   storageClassName: manual
+#   capacity:
+#     storage: 500Mi
+#   accessModes:
+#     - ReadWriteOnce
+#   persistentVolumeReclaimPolicy: Recycle
+#   hostPath:
+#     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/log/go"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rabbitmq-log-pv-volume
+  labels:
+    type: rabbitmq-log
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/log/rabbitmq"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: go-app-pv-volume
+  labels:
+    type: go-app
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/Users/moriokawataru/Docker/FourthProject/gRPC"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rabbitmq-data-pv-volume
+  labels:
+    type: rabbitmq-data
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/rabbitmq"
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: nginx-pv-volume
+#   labels:
+#     type: nginx
+# spec:
+#   storageClassName: manual
+#   capacity:
+#     storage: 1Gi
+#   accessModes:
+#     - ReadWriteOnce
+#   persistentVolumeReclaimPolicy: Recycle
+#   hostPath:
+#     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/www"
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: python-pv-volume
+#   labels:
+#     type: python
+# spec:
+#   storageClassName: manual
+#   capacity:
+#     storage: 1Gi
+#   accessModes:
+#     - ReadWriteOnce
+#   persistentVolumeReclaimPolicy: Recycle
+#   hostPath:
+#     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/django"
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: nginx-pv-claim
+# spec:
+#   selector:
+#     matchLabels:
+#       type: nginx
+#   storageClassName: manual
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: rsyslog-pv-claim
+# spec:
+#   selector:
+#     matchLabels:
+#       type: rsyslog
+#   storageClassName: manual
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: go-log-pv-claim
+# spec:
+#   selector:
+#     matchLabels:
+#       type: go-log
+#   storageClassName: manual
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 500Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbitmq-log-pv-claim
+spec:
+  selector:
+    matchLabels:
+      type: rabbitmq-log
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: go-app-pv-claim
+spec:
+  selector:
+    matchLabels:
+      type: go-app
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbitmq-data-pv-claim
+spec:
+  selector:
+    matchLabels:
+      type: rabbitmq-data
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: python-pv-claim
+# spec:
+#   selector:
+#     matchLabels:
+#       type: python
+#   storageClassName: manual
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: mysql-pv-claim
+# spec:
+#   selector:
+#     matchLabels:
+#       type: mysql
+#   storageClassName: manual
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: postgre-pv-claim
+# spec:
+#   selector:
+#       matchLabels:
+#         type: postgre
+#   storageClassName: manual
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pv-claim
+spec:
+  selector:
+    matchLabels:
+      type: redis
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: oracle-pv-claim
+spec:
+  selector:
+    matchLabels:
+      type: oracle
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 7Gi
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: php-cluster
+# spec:
+#   type: ClusterIP
+#   ports:
+#     - name: php
+#       port: 9000
+#       targetPort: 9000
+#   selector:
+#      app: php
+#      system: nginx-php
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: python-cluster
+# spec:
+#   type: ClusterIP
+#   ports:
+#     - name: python
+#       port: 20000
+#       targetPort: 20000
+#   selector:
+#      app: python
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: nginx-nodeport
+# spec:
+#   type: NodePort
+#   ports:
+#     - name: nodeport
+#       port: 10080
+#       targetPort: 80
+#       nodePort: 32000
+#   selector:
+#     app: nginx
+#     system: nginx-php
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: nginx-tls-nodeport
+# spec:
+#   type: NodePort
+#   ports:
+#     - name: tls-nodeport
+#       port: 10088
+#       targetPort: 443
+#       nodePort: 32100
+#   selector:
+#     app: nginx
+#     system: nginx-php
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: mysql-nodeport
+# spec:
+#   type: NodePort
+#   ports:
+#     - name: nodeport
+#       port: 3306
+#       targetPort: 3306
+#       nodePort: 32700
+#   selector:
+#     app: mysql
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: postgre-nodeport
+# spec:
+#   type: NodePort
+#   ports:
+#     - name: nodeport
+#       port: 5432
+#       targetPort: 5432
+#       nodePort: 32400
+#   selector:
+#     app: postgre
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-nodeport
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 6379
+      targetPort: 6379
+      nodePort: 32600
+  selector:
+    app: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-authen-nodeport
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 50030
+      targetPort: 50030
+      nodePort: 31000
+  selector:
+    app: go-authen
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-socket-nodeport
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 50050
+      targetPort: 50050
+      nodePort: 31100
+  selector:
+    app: go-socket
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-nodeport
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 5671
+      targetPort: 5671
+      nodePort: 31200
+  selector:
+    app: rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-management-nodeport
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 15672
+      targetPort: 15672
+      nodePort: 31300
+  selector:
+    app: rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oracle-nodeport
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 1521
+      targetPort: 1521
+      nodePort: 31400
+  selector:
+    app: oracle
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: rsyslog-cluster
+# spec:
+#   type: ClusterIP
+#   ports:
+#     - name: rsyslog
+#       protocol: UDP
+#       port: 514
+#       targetPort: 514
+#   selector:
+#     app: rsyslog
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: mysql-cluster
+# spec:
+#   type: ClusterIP
+#   ports:
+#     - name: mysql
+#       port: 3306
+#       targetPort: 3306
+#   selector:
+#     app: mysql
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: postgre-cluster
+# spec:
+#   type: ClusterIP
+#   ports:
+#     - name: postgre
+#       port: 5432
+#       targetPort: 5432
+#   selector:
+#     app: postgre
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: redis-cluster
+# spec:
+#   type: ClusterIP
+#   ports:
+#     - name: redis
+#       port: 6379
+#       targetPort: 6379
+#   selector:
+#     app: redis
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: nginx-conf
+# data:
+#   vhost.conf: |
+#     server {
+#         listen 80;
+#         server_name laravel.site
+#         index index.php index.html;
+#         root /var/www/laravel/public;
+#         real_ip_header X-Forwarded-For;  #remote-addrを書き換える
+#         proxy_set_header Host $http_host;
+#         proxy_set_header Connection "";
+#         proxy_set_header X-Real-IP $remote_addr;    # x-real-ipにクライアントIPを設定。APIへ渡す。
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;    # X-Forwarded-For に直前のProxy(＝ELB)を追加
+
+#         access_log syslog:server=rsyslog-cluster:514,facility=local0 main;
+#         error_log syslog:server=rsyslog-cluster:514,facility=local1 notice;
+
+#         location / {
+#             try_files $uri /index.php?$args;
+#         }
+
+#         location ~ \.php$ {
+#             fastcgi_split_path_info ^(.+\.php)(/.+)$;
+#             fastcgi_pass php-cluster:9000;
+#             fastcgi_index index.php;
+#             include fastcgi_params;
+#             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+#             fastcgi_param PATH_INFO $fastcgi_path_info;
+#         }
+#     }
+
+#     server {
+#         listen 443 ssl http2;
+#         server_name laravel.site
+#         index index.php index.html;
+#         root /var/www/laravel/public;
+#         real_ip_header X-Forwarded-For;  #remote-addrを書き換える
+#         proxy_set_header Host $http_host;
+#         proxy_set_header Connection "";
+#         proxy_set_header X-Real-IP $remote_addr;    # x-real-ipにクライアントIPを設定。APIへ渡す。
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;    # X-Forwarded-For に直前のProxy(＝ELB)を追加
+#         proxy_redirect  http:// https://;
+
+#         access_log syslog:server=rsyslog-cluster:514,facility=local0 main;
+#         error_log syslog:server=rsyslog-cluster:514,facility=local1 notice;
+
+#         ssl_certificate      /etc/nginx/tls/tls.crt;
+#         ssl_certificate_key  /etc/nginx/tls/tls.key;
+
+#         location / {
+#             try_files $uri /index.php?$args;
+#         }
+
+#         location ~ \.php$ {
+#             fastcgi_split_path_info ^(.+\.php)(/.+)$;
+#             fastcgi_pass php-cluster:9000;
+#             fastcgi_index index.php;
+#             include fastcgi_params;
+#             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+#             fastcgi_param PATH_INFO $fastcgi_path_info;
+#         }
+#     }
+
+#     upstream django {
+#         ip_hash;
+#         server python-cluster:20000;
+#     }
+
+#     server {
+#         listen 80;
+#         server_name django.site;
+#         charset utf-8;
+#         real_ip_header X-Forwarded-For;  #remote-addrを書き換える
+#         proxy_set_header Host $http_host;
+#         proxy_set_header Connection "";
+#         proxy_set_header X-Real-IP $remote_addr;    # x-real-ipにクライアントIPを設定。APIへ渡す。
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;    # X-Forwarded-For に直前のProxy(＝ELB)を追加    
+
+#         access_log syslog:server=rsyslog-cluster:514,facility=local0 main;
+#         error_log syslog:server=rsyslog-cluster:514,facility=local1 notice;
+
+#         client_max_body_size 100M;   # adjust to taste
+
+#         location /static {    
+#             alias /static; 
+#         }
+
+#         location / {
+#             uwsgi_pass  django;
+#             include     /etc/nginx/uwsgi_params;
+#         }
+#     }
+
+#     server {
+#         listen 443 ssl http2;
+#         server_name django.site;
+#         charset utf-8;
+#         real_ip_header X-Forwarded-For;  #remote-addrを書き換える
+#         proxy_set_header Host $http_host;
+#         proxy_set_header Connection "";
+#         proxy_set_header X-Real-IP $remote_addr;    # x-real-ipにクライアントIPを設定。APIへ渡す。
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;    # X-Forwarded-For に直前のProxy(＝ELB)を追加
+#         proxy_redirect  http:// https://;
+
+#         access_log syslog:server=rsyslog-cluster:514,facility=local0 main;
+#         error_log syslog:server=rsyslog-cluster:514,facility=local1 notice;
+
+#         ssl_certificate      /etc/nginx/tls/tls.crt;
+#         ssl_certificate_key  /etc/nginx/tls/tls.key;
+
+#         client_max_body_size 100M;   # adjust to taste
+
+#         location /static {    
+#             alias /static; 
+#         }
+
+#         location / {
+#             uwsgi_pass  django;
+#             include     /etc/nginx/uwsgi_params;
+#         }
+#     }
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: nginx-deployment
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: nginx
+#       system: nginx-php
+#   template:
+#     metadata:
+#       labels:
+#         app: nginx
+#         system: nginx-php
+#     spec:
+#       containers:
+#       - name: nginx-server
+#         image: watarumorioka/nginx-image
+#         imagePullPolicy: IfNotPresent
+#         ports:
+#         - containerPort: 80
+#         volumeMounts:
+#         - mountPath: /etc/nginx/tls
+#           name: tls-secret
+#         - mountPath: /etc/nginx/conf.d # /etc/nginxにvolumesのnginx-confをmountする
+#           name: nginx-conf
+#         - mountPath: /var/www 
+#           name: nginx-persistent-storage 
+#       volumes:
+#       - name: tls-secret
+#         secret:
+#           secretName: tls-secret
+#       - name: nginx-conf # volumeMountsで/etc/nginxにmountするやつ
+#         configMap: 
+#           name: nginx-conf # ConfigMapのnginx-confを/etc/nginx以下に配置する
+#           items:
+#             - key: vhost.conf # nginx-confのkey
+#               path: default.conf # nginx.confというファイル名
+#       - name: nginx-persistent-storage
+#         persistentVolumeClaim:
+#           claimName: nginx-pv-claim
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: php-deployment
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: php
+#       system: nginx-php
+#   template:
+#     metadata:
+#       labels:
+#         app: php
+#         system: nginx-php
+#     spec:
+#       containers:
+#       - name: laravel-server
+#         image: watarumorioka/php-image
+#         imagePullPolicy: IfNotPresent
+#         ports:
+#         - containerPort: 9000
+#         volumeMounts:
+#         - mountPath: /var/www 
+#           name: php-persistent-storage 
+#       volumes:
+#       - name: php-persistent-storage
+#         persistentVolumeClaim:
+#           claimName: nginx-pv-claim
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: python-deployment
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: python
+#   template:
+#     metadata:
+#       labels:
+#         app: python
+#     spec:
+#       containers:
+#       - name: django-server
+#         image: watarumorioka/python-image
+#         imagePullPolicy: IfNotPresent
+#         ports:
+#         - containerPort: 20000
+#         command: ["uwsgi", "--ini", "/conf/uwsgi.ini"]
+#         volumeMounts:
+#         - mountPath: /django
+#           name: python-persistent-storage 
+#       volumes:
+#       - name: python-persistent-storage
+#         persistentVolumeClaim:
+#           claimName: python-pv-claim
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-authen-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-authen
+  template:
+    metadata:
+      labels:
+        app: go-authen
+    spec:
+      containers:
+      - name: go-authen-server
+        image: watarumorioka/go-notifier-image
+        imagePullPolicy: IfNotPresent
+        # command: ["sh", "/go/src/init.sh"]k
+        ports:
+        - containerPort: 50030
+        volumeMounts:
+        # - mountPath: /go/src/gRPC/log
+        #   name: go-log-persistent-storage 
+        - mountPath: /go/src/gRPC
+          name: go-app-persistent-storage 
+      volumes:
+      # - name: go-log-persistent-storage
+      #   persistentVolumeClaim:
+      #     claimName: go-log-pv-claim
+      - name: go-app-persistent-storage
+        persistentVolumeClaim:
+          claimName: go-app-pv-claim
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-socket-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-socket
+  template:
+    metadata:
+      labels:
+        app: go-socket
+    spec:
+      containers:
+      - name: go-socket-server
+        image: watarumorioka/go-notifier-image
+        imagePullPolicy: IfNotPresent
+        #command: [ "/sbin/rsyslogd", "-n" ]
+        ports:
+        - containerPort: 50050
+        volumeMounts:
+        - mountPath: /go/src/gRPC
+          name: go-app-persistent-storage 
+      volumes:
+      - name: go-app-persistent-storage
+        persistentVolumeClaim:
+          claimName: go-app-pv-claim
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-consumer-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-consumer
+  template:
+    metadata:
+      labels:
+        app: go-consumer
+    spec:
+      containers:
+      - name: go-consumer-server
+        image: watarumorioka/go-notifier-image
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: RABBITMQ_USER
+          value: rabbitmq
+          # valueFrom:
+          #   secretKeyRef:
+          #     name: go-secret
+          #     key: rabbitmq_user
+        - name: RABBITMQ_PASSWORD
+          value: rabbitmq
+          # valueFrom:
+          #   secretKeyRef:
+          #     name: go-secret
+          #     key: rabbitmq_password
+        #command: [ "/sbin/rsyslogd", "-n" ]
+        # ports:
+        # - containerPort: 50050
+        volumeMounts:
+        - mountPath: /go/src/gRPC
+          name: go-app-persistent-storage 
+      volumes:
+      - name: go-app-persistent-storage
+        persistentVolumeClaim:
+          claimName: go-app-pv-claim
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-notifier-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-notifier
+  template:
+    metadata:
+      labels:
+        app: go-notifier
+    spec:
+      containers:
+      - name: go-notifier-server
+        image: watarumorioka/go-notifier-image
+        imagePullPolicy: IfNotPresent
+        #command: [ "/sbin/rsyslogd", "-n" ]
+        ports:
+        # - containerPort: 50050
+        volumeMounts:
+        - mountPath: /go/src/gRPC
+          name: go-app-persistent-storage 
+      volumes:
+      - name: go-app-persistent-storage
+        persistentVolumeClaim:
+          claimName: go-app-pv-claim
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq-server
+        image: watarumorioka/rabbitmq-image
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: admin_user 
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: admin_password
+        - name: RABBITMQ_USER
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitmq_user
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitmq_password
+        - name: RABBITMQ_VHOST
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitmq_vhost
+        command: [ "sh", "/init-rabbitmq.sh" ]
+        ports:
+        - containerPort: 5671
+        - containerPort: 15672
+        volumeMounts:
+        - mountPath: /var/log/rabbitmq
+          name: rabbitmq-log-persistent-storage 
+        - mountPath: /var/lib/rabbitmq
+          name: rabbitmq-data-persistent-storage 
+        - mountPath: /etc/ssl/private
+          name: tls-secret
+      volumes:
+      - name: rabbitmq-log-persistent-storage
+        persistentVolumeClaim:
+          claimName: rabbitmq-log-pv-claim
+      - name: rabbitmq-data-persistent-storage
+        persistentVolumeClaim:
+          claimName: rabbitmq-data-pv-claim
+      - name: tls-secret
+        secret:
+          secretName: rabbitmq-tls-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oracle-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oracle
+  template:
+    metadata:
+      labels:
+        app: oracle
+    spec:
+      # type: ExternalName
+      # externalName: oracle-server
+      containers:
+      - name: oracle-server
+        image: oracle/database:18.3.0-ee
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          valueFrom:
+            secretKeyRef:
+              name: oracle-secret
+              key: tz
+        - name: ORACLE_SID
+          value: ORCL
+          # valueFrom:
+          #   secretKeyRef:
+          #     name: oracle-secret
+          #     key: sid 
+        - name: ORACLE_PDB
+          valueFrom:
+            secretKeyRef:
+              name: oracle-secret
+              key: pdb
+        - name: ORACLE_PWD
+          valueFrom:
+            secretKeyRef:
+              name: oracle-secret
+              key: pwd
+        - name: ORACLE_CHARACTERSET
+          valueFrom:
+            secretKeyRef:
+              name: oracle-secret
+              key: char
+        - name: NLS_LANG
+          valueFrom:
+            secretKeyRef:
+              name: oracle-secret
+              key: lang
+        #command: [ "/sbin/rsyslogd", "-n" ]
+        ports:
+         - containerPort: 1521
+         - containerPort: 5500
+        volumeMounts:
+        - mountPath: /opt/oracle/oradata
+          name: oracle-persistent-storage 
+      volumes:
+      - name: oracle-persistent-storage
+        persistentVolumeClaim:
+          claimName: oracle-pv-claim
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: rsyslog-deployment
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: rsyslog
+#   template:
+#     metadata:
+#       labels:
+#         app: rsyslog
+#     spec:
+#       containers:
+#       - name: rsyslog-server
+#         image: watarumorioka/rsyslog-image
+#         imagePullPolicy: IfNotPresent
+#         #command: [ "/sbin/rsyslogd", "-n" ]
+#         ports:
+#         - containerPort: 514
+#         volumeMounts:
+#         - mountPath: /var/log
+#           name: rsyslog-persistent-storage 
+#       volumes:
+#       - name: rsyslog-persistent-storage
+#         persistentVolumeClaim:
+#           claimName: rsyslog-pv-claim
+# ---
+# apiVersion: apps/v1beta1 # for versions before 1.8.0 use apps/v1beta1
+# kind: Deployment
+# metadata:
+#   name: mysql-deployment
+# spec:
+#   selector:
+#     matchLabels:
+#       app: mysql
+#   strategy:
+#     type: Recreate
+#   template:
+#     metadata:
+#       labels:
+#         app: mysql
+#     spec:
+#       containers:
+#       - image: mysql:latest
+#         name: mysql-server
+#         env:
+#         - name: MYSQL_ROOT_PASSWORD
+#           # value: mysql
+#           valueFrom:
+#             secretKeyRef:
+#               name: mysql-secret
+#               key: root_password
+#         - name: MYSQL_USER
+#           # value: koa
+#           valueFrom:
+#             secretKeyRef:
+#               name: mysql-secret
+#               key: user
+#         - name: MYSQL_PASSWORD
+#           # value: koa
+#           valueFrom:
+#             secretKeyRef:
+#               name: mysql-secret
+#               key: user_password
+#         ports:
+#         - containerPort: 3306
+#           name: mysql
+#         volumeMounts:
+#         - name: mysql-persistent-storage
+#           mountPath: /var/lib/mysql
+#       volumes:
+#       - name: mysql-persistent-storage
+#         persistentVolumeClaim:
+#           claimName: mysql-pv-claim
+---
+apiVersion: apps/v1beta1 # for versions before 1.8.0 use apps/v1beta1
+kind: Deployment
+metadata:
+  name: redis-deployment
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - image: redis:latest
+        name: redis-server
+        #command: [ "redis-server", "--appendonly", "yes" ]
+        env:
+        - name: REDIS_PASSWORD # Pod内に挿入する環境変数の名前
+          valueFrom:
+            secretKeyRef: 
+              name: redis-secret
+              key: password 
+        command: [ "redis-server" ]
+        args: [ "--requirepass $(REDIS_PASSWORD)" ]
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: redis-persistent-storage
+          mountPath: /data
+      volumes:
+      - name: redis-persistent-storage
+        persistentVolumeClaim:
+          claimName: redis-pv-claim
+# ---
+# apiVersion: apps/v1beta1 # for versions before 1.8.0 use apps/v1beta1
+# kind: Deployment
+# metadata:
+#   name: postgre-deployment
+# spec:
+#   selector:
+#     matchLabels:
+#       app: postgre
+#   strategy:
+#     type: Recreate
+#   template:
+#     metadata:
+#       labels:
+#         app: postgre
+#     spec:
+#       containers:
+#       - image: postgres:11.2
+#         name: postgre-server
+#         env:
+#         - name: POSTGRES_USER
+#           valueFrom:
+#             secretKeyRef:
+#               name: postgre-secret
+#               key: user
+#         - name: POSTGRES_PASSWORD
+#           valueFrom:
+#             secretKeyRef:
+#               name: postgre-secret
+#               key: password
+#         - name: POSTGRES_DB
+#           valueFrom:
+#             secretKeyRef:
+#               name: postgre-secret
+#               key: database
+#         ports:
+#         - containerPort: 5432
+#           name: postgre
+#         volumeMounts:
+#         - name: postgre-persistent-storage
+#           mountPath: /var/lib/postgresql/data
+#       volumes:
+#       - name: postgre-persistent-storage
+#         persistentVolumeClaim:
+#           claimName: postgre-pv-claim
+

@@ -1,0 +1,111 @@
+version: '3'
+services:
+  # Golangコード生成用コンテナ
+  go-grpc:
+    build:
+      context: ./
+      dockerfile: go-grpc.dockerfile
+    container_name: grpc-server
+    ports:
+      - 50050:50050
+    networks:
+      kotlin-go-cpp-net2:
+    volumes:
+      - ./gRPC:/go/src/gRPC/
+  go-authen:
+    build:
+      context: ./
+      dockerfile: go-grpc.dockerfile
+    container_name: authen-server
+    ports:
+      - 50030:50030
+    networks:
+      kotlin-go-cpp-net2:
+    volumes:
+      - ./gRPC:/go/src/gRPC/
+  go-consumer:
+    build:
+      context: ./
+      dockerfile: go-grpc.dockerfile
+    container_name: consumer-server
+    environment:
+     - RABBITMQ_USER=&{RABBITMQ_USER}
+     - RABBITMQ_PASSWORD=&{RABBITMQ_PASSWORD}
+    # ports:
+    #   - 50030:50030
+    networks:
+      kotlin-go-cpp-net2:
+    volumes:
+      - ./gRPC:/go/src/gRPC/
+  go-notifier:
+    build:
+      context: ./
+      dockerfile: go-notifier.dockerfile
+    container_name: notifier-server
+    # ports:
+    #   - 50030:50030
+    networks:
+      kotlin-go-cpp-net2:
+    volumes:
+      - ./gRPC:/go/src/gRPC/
+  #kotlin:
+  #  build:
+  #    context: ./
+  #    dockerfile: kotlin.dockerfile
+  #  hostname: kotdev-server
+  #  ports: 
+  #    - "2122:22"
+  #    - "40080:8080"
+  #  command: ["kotlinc"]
+  #  volumes:
+  #    - ./kotlin:/app
+  oracle:
+    image: oracle/database:18.3.0-ee
+    container_name: oracle-server
+    ports:
+      - 1521:1521
+      - 5500:5500
+    networks:
+      kotlin-go-cpp-net2:
+    volumes:
+      - ./oracle:/opt/oracle/oradata
+    environment:
+      - TZ=Asia/Tokyo
+      - ORACLE_SID=ORCL
+      - ORACLE_PDB=ThirdProject
+      - ORACLE_PWD=oracle
+      - ORACLE_CHARACTERSET=AL32UTF8
+      - NLS_LANG=Japanese_Japan.AL32UTF8
+  redis:
+    image: redis:latest
+    container_name: redis-server
+    # restart: always
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    networks:
+      kotlin-go-cpp-net2:
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis:/data
+  rabbitmq:
+    # image: rabbitmq:3.7.14-management
+    build:
+      context: ./
+      dockerfile: rabbitmq.dockerfile
+    container_name: rabbitmq-server
+    #command: ["tail", "-f", "/dev/null"]
+    ports:
+      - 5671:5671
+      - 5672:5672
+      - 15672:15672
+    networks:
+      kotlin-go-cpp-net2:
+    volumes:
+      - ./rabbitMQ:/var/lib/rabbitmq 
+networks:
+  kotlin-go-cpp-net2:
+      driver: bridge
+      ipam:
+          driver: default
+          config:
+            - subnet: 172.20.0.0/24

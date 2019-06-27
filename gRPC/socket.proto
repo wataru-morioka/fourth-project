@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+//option java_package = "io.tokikokoko.hellogrpc.server";
+option java_outer_classname = "SocketClass";
+
+package socket;
+
+service Socket {
+    // 会員情報を更新
+    rpc UpdateStatus (UpdateRequest) returns (StatusResult) {}
+    // ユーザに関係する最新情報を取得
+    rpc GetNewInfo (InfoRequest) returns (stream InfoResult) {}
+    //新着情報を取得したことをサーバに送信
+    rpc ReceiveDone (DoneRequest) returns (DoneResult) {}
+}
+
+// 空のmessage
+message Null {
+}
+
+message UpdateRequest {
+    string sessionId = 1;
+    int32 status = 2;
+}
+
+message StatusResult {
+    bool result = 1;
+}
+
+message InfoRequest {
+    string sessionId = 1;
+}
+
+message InfoResult {
+    bool result = 1;
+    string owner = 2;
+    int64 questionId = 3;
+    int64 questionSeq = 4;
+    bool determinationFlag = 5; 
+    int32 targetNumber = 6;
+    string question = 7;
+    string answer1 = 8;
+    string answer2 = 9;
+    int32 answer1number = 10;
+    int32 answer2number = 11;
+    string timeLimit = 12;
+}
+
+message DoneRequest {
+    string sessionId = 1;
+    string owner = 2;
+    int64 questionId = 3;
+    int64 questionSeq = 4;
+    bool determinationFlag = 5;
+}
+
+message DoneResult {
+    bool result = 1;
+}

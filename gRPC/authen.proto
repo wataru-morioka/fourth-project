@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+//option java_package = "io.tokikokoko.hellogrpc.server";
+option java_outer_classname = "Authentication";
+
+package authen;
+
+// The greeting service definition.
+service Authen {
+    // 新規ユーザ登録
+    rpc Register (RegistrationRequest) returns (RegistrationResult) {}
+    // ログイン認証処理依頼
+    rpc Login (LoginRequest) returns (LoginResult) {}
+    // ログアウト処理依頼
+    rpc Logout (LogoutRequest) returns (LogoutResult) {}
+    //セッション維持リクエスト
+    rpc MaintainSession (MaintenanceRequest) returns (MaintenanceResult) {}
+}
+
+// 空のmessage
+message Null {
+}
+
+message RegistrationRequest {
+    string userId = 1;
+    string token = 2;
+}
+
+message RegistrationResult {
+    bool result = 1;
+    string password = 2;
+    string sessionId = 3;
+    int32 status = 4;
+}
+
+message LoginRequest {
+    string userId = 1;
+    string password = 2;
+    string token = 3;
+}
+
+message LoginResult {
+    bool result = 1;
+    string sessionId = 2;
+    int32 status = 3;
+}
+
+message LogoutRequest {
+    string sessionId = 1;
+}
+
+message LogoutResult {
+    bool result = 1;
+}
+
+message MaintenanceRequest {
+    string sessionId = 1;
+    string userId = 2;
+}
+
+message MaintenanceResult {
+    bool result = 1;
+}
+
