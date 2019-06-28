@@ -590,7 +590,7 @@ func execTransaction(db *sql.DB, userSlice *[]string, timePeriod int32, question
 }
 
 func main() {
-    service.InitSetUpLog(envDevelopment, logFilePath)
+    service.InitSetUpLog(envProduction, logFilePath)
 
     quitChan := make(chan struct{})
     fatalChan := make(chan error)

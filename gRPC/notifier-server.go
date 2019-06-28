@@ -1068,7 +1068,7 @@ func initializeAppWithServiceAccount() (*firebase.App, error) {
 }
 
 func main() {
-	service.InitSetUpLog(envDevelopment, logFilePath)
+	service.InitSetUpLog(envProduction, logFilePath)
 	app, err := initializeAppWithServiceAccount()
 	if err!= nil {
 		return
