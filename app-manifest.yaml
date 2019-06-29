@@ -87,6 +87,22 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
+  name: nginx-log-pv-volume
+  labels:
+    type: nginx-log
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/log/nginx"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
   name: rabbitmq-data-pv-volume
   labels:
     type: rabbitmq-data
@@ -108,6 +124,21 @@ spec:
   selector:
     matchLabels:
       type: rabbitmq-log
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nginx-log-pv-claim
+spec:
+  selector:
+    matchLabels:
+      type: nginx-log
   storageClassName: manual
   accessModes:
     - ReadWriteOnce
@@ -207,7 +238,33 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: go-authen-nodeport
+  name: go-authen-cluster
+spec:
+  type: ClusterIP
+  ports:
+    - name: nodeport
+      port: 50030
+      targetPort: 50030
+  selector:
+    app: go-authen
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-socket-cluster
+spec:
+  type: ClusterIP
+  ports:
+    - name: nodeport
+      port: 50050
+      targetPort: 50050
+  selector:
+    app: go-socket
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-authen-nodeport
 spec:
   type: NodePort
   ports:
@@ -216,12 +273,12 @@ spec:
       targetPort: 50030
       nodePort: 31000
   selector:
-    app: go-authen
+    app: nginx
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: go-socket-nodeport
+  name: nginx-socket-nodeport
 spec:
   type: NodePort
   ports:
@@ -230,7 +287,7 @@ spec:
       targetPort: 50050
       nodePort: 31100
   selector:
-    app: go-socket
+    app: nginx
 ---
 apiVersion: v1
 kind: Service
@@ -290,50 +347,38 @@ data:
     dir /var/run/redis
     requirepass redis
     maxclients 1024
-    
-# ---
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: nginx-deployment
-# spec:
-#   replicas: 2
-#   selector:
-#     matchLabels:
-#       app: nginx
-#       system: nginx-php
-#   template:
-#     metadata:
-#       labels:
-#         app: nginx
-#         system: nginx-php
-#     spec:
-#       containers:
-#       - name: nginx-server
-#         image: watarumorioka/nginx-image
-#         imagePullPolicy: IfNotPresent
-#         ports:
-#         - containerPort: 80
-#         volumeMounts:
-#         - mountPath: /etc/nginx/tls
-#           name: tls-secret
-#         - mountPath: /etc/nginx/conf.d # /etc/nginxにvolumesのnginx-confをmountする
-#           name: nginx-conf
-#         - mountPath: /var/www 
-#           name: nginx-persistent-storage 
-#       volumes:
-#       - name: tls-secret
-#         secret:
-#           secretName: tls-secret
-#       - name: nginx-conf # volumeMountsで/etc/nginxにmountするやつ
-#         configMap: 
-#           name: nginx-conf # ConfigMapのnginx-confを/etc/nginx以下に配置する
-#           items:
-#             - key: vhost.conf # nginx-confのkey
-#               path: default.conf # nginx.confというファイル名
-#       - name: nginx-persistent-storage
-#         persistentVolumeClaim:
-#           claimName: nginx-pv-claim
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx-server
+        image: watarumorioka/reproxy-image
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 50030
+        - containerPort: 50050
+        volumeMounts:
+        - mountPath: /var/log/nginx
+          name: nginx-persistent-storage 
+      volumes:
+      - name: tls-secret
+        secret:
+          secretName: tls-secret
+      - name: nginx-persistent-storage
+        persistentVolumeClaim:
+          claimName: nginx-log-pv-claim
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -480,8 +525,12 @@ spec:
       - name: go-notifier-server
         image: watarumorioka/go-image
         imagePullPolicy: IfNotPresent
-        command: ["//go/src/init.sh"]
+        command: ["/go/src/init.sh"]
         args: ["/go/src/gRPC/notifier-server.go"]
+        # command: ["/bin/bash", "-c"]
+        # args: 
+        # - sh /go/src/init.sh
+        # - go run /go/src/gRPC/notifier-server.go
         # ports:
         # - containerPort: 50050
         livenessProbe:
@@ -546,6 +595,11 @@ spec:
         ports:
         - containerPort: 5671
         - containerPort: 15672
+        # readinessProbe:
+        #   tcpSocket:
+        #     port: 5671
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 5
         volumeMounts:
         - mountPath: /var/log/rabbitmq
           name: rabbitmq-log-persistent-storage 
@@ -620,6 +674,11 @@ spec:
         ports:
          - containerPort: 1521
          - containerPort: 5500
+        # readinessProbe:
+        #   tcpSocket:
+        #     port: 1521
+        #   initialDelaySeconds: 10
+        #   periodSeconds: 5
         volumeMounts:
         - mountPath: /opt/oracle/oradata
           name: oracle-persistent-storage 
@@ -658,6 +717,11 @@ spec:
         ports:
         - containerPort: 6379
           name: redis
+        # readinessProbe:
+        #   tcpSocket:
+        #     port: 6379
+        #   initialDelaySeconds: 10
+        #   periodSeconds: 5
         volumeMounts:
         - name: redis-persistent-storage
           mountPath: /data

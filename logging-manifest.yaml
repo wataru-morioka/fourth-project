@@ -187,6 +187,22 @@ data:
       flush_interval 2s
       type_name fluentd
     </match>
+    <match nginx.**>
+      @type elasticsearch
+      #@id out_es
+      #@log_level info
+      host "#{ENV['FLUENT_ELASTICSEARCH_HOST']}"
+      port "#{ENV['FLUENT_ELASTICSEARCH_PORT']}"
+      scheme "#{ENV['FLUENT_ELASTICSEARCH_SCHEME'] || 'http'}"
+      reload_connections "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_CONNECTIONS'] || 'false'}"
+      reconnect_on_error "#{ENV['FLUENT_ELASTICSEARCH_RECONNECT_ON_ERROR'] || 'true'}"
+      reload_on_failure "#{ENV['FLUENT_ELASTICSEARCH_RELOAD_ON_FAILURE'] || 'true'}"
+      include_tag_key true
+      logstash_format true
+      logstash_prefix go
+      flush_interval 2s
+      type_name fluentd
+    </match>
     #Target Logs (ex:nginx)
     # <source>
     #   @type tail
@@ -225,6 +241,16 @@ data:
       # time_format %d/%b/%Y:%H:%M:%S %z
       pos_file "/var/log/fluentd-go.log.pos"
       tag "go.*"
+      read_from_head true
+    </source>
+    <source>
+      @type tail
+      path "/var/log/nginx/*log"
+      format json
+      time_key key3
+      # time_format %d/%b/%Y:%H:%M:%S %z
+      pos_file "/var/log/fluentd-nginx.log.pos"
+      tag "nginx.*"
       read_from_head true
     </source>
 
@@ -274,6 +300,8 @@ spec:
           mountPath: /var/log/rabbitmq
         - name: redis-log
           mountPath: /var/log/redis
+        - name: nginx-log
+          mountPath: /var/log/nginx
         - name: go-log
           mountPath: /var/log/go
         - name: fluentd-conf
@@ -286,6 +314,9 @@ spec:
       - name: redis-log
         hostPath:
           path: /Users/moriokawataru/Kubernetes/PersistentVolume/log/redis
+      - name: nginx-log
+        hostPath:
+          path: /Users/moriokawataru/Kubernetes/PersistentVolume/log/nginx
       - name: go-log
         hostPath:
           path: /Users/moriokawataru/Docker/FourthProject/gRPC/logs

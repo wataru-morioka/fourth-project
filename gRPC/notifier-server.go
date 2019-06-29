@@ -488,7 +488,7 @@ func pushNewQuestion(wg *sync.WaitGroup, errChan chan error, quitChan chan struc
 				queue <- TargetStruct{Seq: targetSeq, Token: token}
 			}
 		
-			time.Sleep(10 * time.Second)
+			time.Sleep(30 * time.Second)
 		}
 	}()
 
@@ -750,7 +750,7 @@ func pushFinished(wg *sync.WaitGroup, errChan chan error, quitChan chan struct{}
 				queue <- targetInfo
 			}
 			
-			time.Sleep(15 * time.Second)
+			time.Sleep(40 * time.Second)
 		}
 	}()
 
@@ -841,7 +841,7 @@ func confirmActiveToken(wg *sync.WaitGroup, errChan chan error, quitChan chan st
 				break
 			}
 			
-			time.Sleep(100 * time.Second)
+			time.Sleep(1000 * time.Second)
 		}
 	}()
 	
