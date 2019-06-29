@@ -242,7 +242,7 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: nodeport
+    - name: cluster-port
       port: 50030
       targetPort: 50030
   selector:
@@ -255,11 +255,24 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: nodeport
+    - name: cluster-port
       port: 50050
       targetPort: 50050
   selector:
     app: go-socket
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-cluster
+spec:
+  type: ClusterIP
+  ports:
+    - name: cluster-port
+      port: 5671
+      targetPort: 5671
+  selector:
+    app: rabbitmq
 ---
 apiVersion: v1
 kind: Service
@@ -292,7 +305,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rabbitmq-nodeport
+  name: nginx-rabbitmq-nodeport
 spec:
   type: NodePort
   ports:
@@ -301,7 +314,7 @@ spec:
       targetPort: 5671
       nodePort: 31200
   selector:
-    app: rabbitmq
+    app: nginx
 ---
 apiVersion: v1
 kind: Service

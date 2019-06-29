@@ -26,6 +26,13 @@ RUN echo 'stream {\n\
         listen 50050;\n\
         proxy_pass go-socket;\n\ 
     }\n\ 
+    upstream rabbitmq {\n\
+        server rabbitmq-cluster:5671;\n\
+    }\n\ 
+    server {\n\
+        listen 5671;\n\
+        proxy_pass rabbitmq;\n\ 
+    }\n\ 
 }' >> /etc/nginx/nginx.conf
 
 WORKDIR /var/www
