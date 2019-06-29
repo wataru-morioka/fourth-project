@@ -15,11 +15,25 @@ spec:
     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/prometheus"
 ---
 apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: grafana-pv-volume
+  labels:
+    type: grafana
+spec:    
+  storageClassName: manual
+  capacity:
+    storage: 200Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/grafana"
+---
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: prometheus-pv-claim
-  #labels:
-  #  kubernetes.io/cluster-service: "true"
 spec:
   selector:
     matchLabels:
@@ -30,6 +44,21 @@ spec:
   resources:
     requests:
       storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pv-claim
+spec:
+  selector:
+    matchLabels:
+      type: grafana
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Mi
 ---
 apiVersion: extensions/v1beta1
 kind: DaemonSet
@@ -391,3 +420,10 @@ spec:
         image: grafana/grafana:6.1.6
         ports:
         - containerPort: 3000
+        volumeMounts:
+        - name: grafana-persistent-storage
+          mountPath: /var/lib/grafana
+      volumes:
+      - name: grafana-persistent-storage 
+        persistentVolumeClaim:
+          claimName: grafana-pv-claim
