@@ -33,11 +33,20 @@ ADD ./go-bash.profile /root/.bashrc
 WORKDIR /go/src
 ADD ./init.sh /go/src/init.sh 
 RUN chmod 755 /go/src/init.sh 
+ADD ./authen-process-check.sh /go/src/authen-process-check.sh 
+RUN chmod 755 /go/src/authen-process-check.sh 
+ADD ./socket-process-check.sh /go/src/socket-process-check.sh 
+RUN chmod 755 /go/src/socket-process-check.sh 
+ADD ./consumer-process-check.sh /go/src/consumer-process-check.sh 
+RUN chmod 755 /go/src/consumer-process-check.sh 
+ADD ./notifier-process-check.sh /go/src/notifier-process-check.sh 
+RUN chmod 755 /go/src/notifier-process-check.sh 
 #WORKDIR /root
 #RUN . .bash_profile; exit 0
 #WORKDIR /go/src/gRPC/instantclient_19_3
 #RUN ln -s libclntsh.so.19.1 libclntsh.so; exit 0
 RUN apt-get install libaio1 libaio-dev
+WORKDIR /go/src/gRPC
 # RUN go get github.com/mattn/go-oci8
 
 #RUN mv /bin/sh /bin/sh_tmp && ln -s /bin/bash /bin/sh
@@ -48,4 +57,4 @@ RUN apt-get install libaio1 libaio-dev
 
 # EXPOSE 8080
 
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+# ENTRYPOINT ["/bin/sh /go/src/init.sh"]

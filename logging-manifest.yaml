@@ -39,6 +39,7 @@ spec:
   selector:
     matchLabels:
       type: elasticsearch
+  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:

@@ -555,7 +555,7 @@ func getUserId(sessionId string) (string, error){
 }
 
 func main() {
-	service.InitSetUpLog(envProduction, logFilePath)
+	service.InitSetUpLog(envDevelopment, logFilePath)
     lis, err := net.Listen("tcp", port)
     if err != nil {
         logrus.Fatalf("lfailed to listen: %v", err)

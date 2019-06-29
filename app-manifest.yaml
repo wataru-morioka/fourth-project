@@ -128,7 +128,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
+      storage: 500Mi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -338,7 +338,7 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-authen-deployment
+  name: go-authen
 spec:
   replicas: 1
   selector:
@@ -351,11 +351,19 @@ spec:
     spec:
       containers:
       - name: go-authen-server
-        image: watarumorioka/go-notifier-image
+        image: watarumorioka/go-image
         imagePullPolicy: IfNotPresent
-        # command: ["sh", "/go/src/init.sh"]k
+        # command: ["/bin/bash", "-c", "cd /root && source .bashrc && go get github.com/mattn/go-oci8 && tail -f /dev/null"]
+        command: ["/go/src/init.sh"]
+        args: ["/go/src/gRPC/authen-server.go"]
         ports:
         - containerPort: 50030
+        livenessProbe:
+          exec:
+            command: ["sh", "/go/src/authen-process-check.sh"]
+          initialDelaySeconds: 60
+          periodSeconds: 5
+          failureThreshold: 1
         volumeMounts:
         # - mountPath: /go/src/gRPC/log
         #   name: go-log-persistent-storage 
@@ -372,7 +380,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-socket-deployment
+  name: go-socket
 spec:
   replicas: 1
   selector:
@@ -385,11 +393,18 @@ spec:
     spec:
       containers:
       - name: go-socket-server
-        image: watarumorioka/go-notifier-image
+        image: watarumorioka/go-image
         imagePullPolicy: IfNotPresent
-        #command: [ "/sbin/rsyslogd", "-n" ]
+        command: ["/go/src/init.sh"]
+        args: ["/go/src/gRPC/socket-server.go"]
         ports:
         - containerPort: 50050
+        livenessProbe:
+          exec:
+            command: ["sh", "/go/src/socket-process-check.sh"]
+          initialDelaySeconds: 60
+          periodSeconds: 5
+          failureThreshold: 1
         volumeMounts:
         - mountPath: /go/src/gRPC
           name: go-app-persistent-storage 
@@ -401,7 +416,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-consumer-deployment
+  name: go-consumer
 spec:
   replicas: 1
   selector:
@@ -414,7 +429,7 @@ spec:
     spec:
       containers:
       - name: go-consumer-server
-        image: watarumorioka/go-notifier-image
+        image: watarumorioka/go-image
         imagePullPolicy: IfNotPresent
         env:
         - name: RABBITMQ_USER
@@ -429,9 +444,16 @@ spec:
           #   secretKeyRef:
           #     name: go-secret
           #     key: rabbitmq_password
-        #command: [ "/sbin/rsyslogd", "-n" ]
+        command: ["/go/src/init.sh"]
+        args: ["/go/src/gRPC/consumer-server.go"]
         # ports:
         # - containerPort: 50050
+        livenessProbe:
+          exec:
+            command: ["sh", "/go/src/consumer-process-check.sh"]
+          initialDelaySeconds: 60
+          periodSeconds: 5
+          failureThreshold: 1
         volumeMounts:
         - mountPath: /go/src/gRPC
           name: go-app-persistent-storage 
@@ -443,7 +465,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-notifier-deployment
+  name: go-notifier
 spec:
   replicas: 1
   selector:
@@ -456,11 +478,18 @@ spec:
     spec:
       containers:
       - name: go-notifier-server
-        image: watarumorioka/go-notifier-image
+        image: watarumorioka/go-image
         imagePullPolicy: IfNotPresent
-        #command: [ "/sbin/rsyslogd", "-n" ]
+        command: ["//go/src/init.sh"]
+        args: ["/go/src/gRPC/notifier-server.go"]
         # ports:
         # - containerPort: 50050
+        livenessProbe:
+          exec:
+            command: ["sh", "/go/src/notifier-process-check.sh"]
+          initialDelaySeconds: 60
+          periodSeconds: 5
+          failureThreshold: 1
         volumeMounts:
         - mountPath: /go/src/gRPC
           name: go-app-persistent-storage 
@@ -472,7 +501,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rabbitmq-deployment
+  name: rabbitmq
 spec:
   replicas: 1
   selector:
@@ -538,7 +567,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: oracle-deployment
+  name: oracle
 spec:
   replicas: 1
   selector:
@@ -602,7 +631,7 @@ spec:
 apiVersion: apps/v1beta1 # for versions before 1.8.0 use apps/v1beta1
 kind: Deployment
 metadata:
-  name: redis-deployment
+  name: redis
 spec:
   selector:
     matchLabels:
