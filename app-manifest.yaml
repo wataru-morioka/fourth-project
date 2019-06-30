@@ -50,7 +50,7 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   hostPath:
-    path: "/Users/moriokawataru/Docker/ThirdProject/oracle"
+    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/oracle"
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -205,21 +205,21 @@ spec:
   resources:
     requests:
       storage: 100Mi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: oracle-pv-claim
-spec:
-  selector:
-    matchLabels:
-      type: oracle
-  storageClassName: manual
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 7Gi
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: oracle-pv-claim
+# spec:
+#   selector:
+#     matchLabels:
+#       type: oracle
+#   storageClassName: manual
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 7Gi
 ---
 apiVersion: v1
 kind: Service
@@ -632,21 +632,22 @@ spec:
           secretName: rabbitmq-tls-secret
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: oracle
 spec:
+  serviceName: oracle
   replicas: 1
   selector:
     matchLabels:
       app: oracle
+  updateStrategy:
+    type: RollingUpdate
   template:
     metadata:
       labels:
         app: oracle
     spec:
-      # type: ExternalName
-      # externalName: oracle-server
       containers:
       - name: oracle-server
         image: oracle/database:18.3.0-ee
@@ -694,11 +695,19 @@ spec:
         #   periodSeconds: 5
         volumeMounts:
         - mountPath: /opt/oracle/oradata
-          name: oracle-persistent-storage 
-      volumes:
-      - name: oracle-persistent-storage
-        persistentVolumeClaim:
-          claimName: oracle-pv-claim
+          name: oracle-pv-claim 
+  volumeClaimTemplates:
+  - metadata:
+      name: oracle-pv-claim
+    spec:
+      selector:
+        matchLabels:
+          type: oracle
+      storageClassName: manual 
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 7Gi
 ---
 apiVersion: apps/v1beta1 # for versions before 1.8.0 use apps/v1beta1
 kind: Deployment
@@ -730,11 +739,6 @@ spec:
         ports:
         - containerPort: 6379
           name: redis
-        # readinessProbe:
-        #   tcpSocket:
-        #     port: 6379
-        #   initialDelaySeconds: 10
-        #   periodSeconds: 5
         volumeMounts:
         - name: redis-persistent-storage
           mountPath: /data
@@ -755,4 +759,5 @@ spec:
           items:
             - key: redis.conf 
               path: redis.conf 
+
 

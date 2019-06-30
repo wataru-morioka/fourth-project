@@ -27,7 +27,7 @@ const (
     dbConnectionInfo = "Go/go@oracle-nodeport:1521/ThirdProject"
     question = "question"
     answer = "answer"
-    host = "rabbitmq-nodeport"
+    host = "rabbitmq-cluster"
     scheme = "amqps" 
     rabbitmqPort = 5671
     vhost = "/third-project"
