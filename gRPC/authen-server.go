@@ -34,8 +34,8 @@ const (
 )
 
 var redisClient = redis.NewClient(&redis.Options{
-    Addr:     "redis-nodeport:6379",
-    Password: "redis",
+    Addr:     "twemproxy-cluster:6222",
+    // Password: "redis",
     DB:       0,  // use default DB
 })
 
@@ -279,8 +279,8 @@ func randString(n int) string {
 
 //セッションをキャッシュにセット
 func setSession(sessionId string, userId string) error {
-    key := sessionId
-    err := redisClient.Set(key, userId, 100*time.Second).Err()
+    logrus.Info(sessionId)
+    err := redisClient.Set(sessionId, userId, 100*time.Second).Err()
     if err != nil {
         return err
     }

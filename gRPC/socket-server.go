@@ -33,8 +33,8 @@ const (
 )
 
 var redisClient = redis.NewClient(&redis.Options{
-	Addr:     "redis-nodeport:6379",
-	Password: "redis",
+	Addr:     "twemproxy-cluster:6222",
+	// Password: "redis",
 	DB:       0,  // use default DB
 })
 

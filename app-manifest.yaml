@@ -190,21 +190,21 @@ spec:
   resources:
     requests:
       storage: 100Mi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: redis-log-pv-claim
-spec:
-  selector:
-    matchLabels:
-      type: redis-log
-  storageClassName: manual
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: redis-log-pv-claim
+# spec:
+#   selector:
+#     matchLabels:
+#       type: redis-log
+#   storageClassName: manual
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 100Mi
 # ---
 # apiVersion: v1
 # kind: PersistentVolumeClaim
@@ -224,6 +224,56 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: twemproxy-cluster
+  labels:
+    app: twemproxy
+spec:
+  type: ClusterIP
+  selector:
+    app: twemproxy
+  ports:
+  - name: "63791"
+    port: 63791
+    targetPort: 63791
+  - name: "6222"
+    port: 6222
+    targetPort: 6222
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-0-service
+  labels:
+    app: redis-0
+spec:
+  # type: ClusterIP
+  clusterIP: None
+  ports:
+  - port: 6379
+    targetPort: 6379
+    name: redis-0
+  selector:
+    statefulset.kubernetes.io/pod-name: redis-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-1-service
+  labels:
+    app: redis-1
+spec:
+  # type: ClusterIP
+  clusterIP: None
+  ports:
+  - port: 6379
+    targetPort: 6379
+    name: redis-1
+  selector:
+    statefulset.kubernetes.io/pod-name: redis-1
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: redis-nodeport
 spec:
   type: NodePort
@@ -233,7 +283,23 @@ spec:
       targetPort: 6379
       nodePort: 32600
   selector:
-    app: redis
+    # app: redis
+    statefulset.kubernetes.io/pod-name: redis-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis1-nodeport
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 6379
+      targetPort: 6379
+      nodePort: 32601
+  selector:
+    # app: redis
+    statefulset.kubernetes.io/pod-name: redis-1
 ---
 apiVersion: v1
 kind: Service
@@ -343,23 +409,6 @@ spec:
       nodePort: 31400
   selector:
     app: oracle
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: redis-conf
-data:
-  redis.conf: |
-    daemonize yes
-    pidfile redis_6379.pid
-    port 6379
-    bind 127.0.0.1
-    loglevel notice
-    logfile /var/log/redis/redis.log
-    dbfilename redis.rdb
-    dir /var/run/redis
-    requirepass redis
-    maxclients 1024
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -709,55 +758,142 @@ spec:
         requests:
           storage: 7Gi
 ---
-apiVersion: apps/v1beta1 # for versions before 1.8.0 use apps/v1beta1
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: twemproxy-conf
+data:
+  twemproxy.yml: |
+    pool:
+      listen: 0.0.0.0:6222
+      # hash: fnv1a_64
+      hash: murmur
+      # hash_tag: "{}"
+      distribution: ketama
+      auto_eject_hosts: true
+      redis: true
+      timeout: 40000
+      server_retry_timeout: 30000
+      server_failure_limit: 3
+      server_connections: 1
+      preconnect: true
+      servers:
+        - redis-0-service:6379:1
+        - redis-1-service:6379:1
+---
+apiVersion: extensions/v1beta1
 kind: Deployment
+metadata:
+  name: twemproxy
+  labels:
+    app: twemproxy
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: twemproxy
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: twemproxy-server
+        image: watarumorioka/twemproxy-image
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 63791
+        - containerPort: 6222
+        # command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+        volumeMounts:
+        - mountPath: /etc/conf
+          name: twemproxy-conf 
+      volumes:
+      - name: twemproxy-conf 
+        configMap: 
+          name: twemproxy-conf 
+          items:
+            - key: twemproxy.yml
+              path: twemproxy.yml 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-conf
+data:
+  redis.conf: |
+    # daemonize yes
+    # pidfile redis_6379.pid
+    port 6379
+    bind 0.0.0.0
+    # save ""
+    # stop-writes-on-bgsave-error no  
+    loglevel notice
+    logfile /var/log/redis/redis.log
+    dbfilename redis.rdb
+    dir /var/lib/redis
+    # requirepass redis
+    maxclients 1024
+---
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
   name: redis
 spec:
+  serviceName: redis
+  replicas: 2
   selector:
     matchLabels:
       app: redis
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app: redis
     spec:
+      terminationGracePeriodSeconds: 3
       containers:
-      - image: redis:latest
+      - image: redis:5.0.5
         name: redis-server
-        #command: [ "redis-server", "--appendonly", "yes" ]
         env:
-        - name: REDIS_PASSWORD # Pod内に挿入する環境変数の名前
+        - name: REDIS_PASSWORD 
           valueFrom:
             secretKeyRef: 
               name: redis-secret
-              key: password 
+              key: password
         command: [ "redis-server" ]
-        args: [ "--requirepass $(REDIS_PASSWORD)" ]
+        # args: [ "--requirepass $(REDIS_PASSWORD)" ]
         ports:
         - containerPort: 6379
           name: redis
         volumeMounts:
-        - name: redis-persistent-storage
-          mountPath: /data
-        - name: redis-log-persistent-storage
-          mountPath: /var/log/redis
+        # - name: redis-persistent-storage
+        #   mountPath: /data
+        # - name: redis-log-persistent-storage
+        #   mountPath: /var/log/redis
         - name: redis-conf
           mountPath: /etc/redis
       volumes:
-      - name: redis-persistent-storage
-        persistentVolumeClaim:
-          claimName: redis-pv-claim
-      - name: redis-log-persistent-storage
-        persistentVolumeClaim:
-          claimName: redis-log-pv-claim
+      # - name: redis-persistent-storage
+      #   persistentVolumeClaim:
+      #     claimName: redis-pv-claim
+      # - name: redis-log-persistent-storage
+      #   persistentVolumeClaim:
+      #     claimName: redis-log-pv-claim
       - name: redis-conf 
         configMap: 
           name: redis-conf 
           items:
             - key: redis.conf 
               path: redis.conf 
+  # volumeClaimTemplates:
+  # - metadata:
+  #     name: redis-log-pv-claim
+  #   spec:
+  #     selector:
+  #       matchLabels:
+  #         type: redis-log
+  #     storageClassName: manual 
+  #     accessModes: [ "ReadWriteOnce" ]
+  #     resources:
+  #       requests:
+  #         storage: 100Mi
 
 
