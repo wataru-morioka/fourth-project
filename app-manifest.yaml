@@ -501,7 +501,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: nginx-suricata
 spec:
   replicas: 1
   selector:
@@ -514,11 +514,13 @@ spec:
     spec:
       containers:
       - name: nginx-server
-        image: watarumorioka/reproxy-image
+        image: watarumorioka/nginx-suricata-image
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 50030
         - containerPort: 50050
+        - containerPort: 80
+        command: ["/bin/bash", "-c", "nginx && tail -f /dev/null"]
         volumeMounts:
         - mountPath: /var/log/nginx
           name: nginx-persistent-storage 

@@ -1,16 +1,16 @@
-FROM nginx:latest
-
-RUN useradd -m -s /bin/bash -u 1000 wataru
-
-RUN sed -i 's/user\ \ nginx\;/user\ \ wataru\;/g' /etc/nginx/nginx.conf
-
-RUN apt-get update && apt-get install -y vim
-RUN apt-get install -y curl
-RUN apt-get install -y procps
-
-RUN /bin/cp -f /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
-
-RUN echo 'stream {\n\
+# FROM nginx:1.17
+FROM ubuntu:18.04
+# Install basics
+RUN apt-get update \
+ && apt-get install -y iproute2 iputils-ping software-properties-common vim curl tzdata nginx \
+ && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
+ && add-apt-repository ppa:oisf/suricata-stable \
+ && apt-get update \
+ && apt-get install -y suricata \
+ && suricata-update \
+ && useradd -m -s /bin/bash -u 1000 wataru \
+ && sed -i 's/user\ \ nginx\;/user\ \ wataru\;/g' /etc/nginx/nginx.conf \
+ && echo 'stream {\n\
     error_log /var/log/nginx/stream.log info;\n\
     upstream go-authen {\n\
         server go-authen-cluster:50030;\n\
@@ -33,6 +33,4 @@ RUN echo 'stream {\n\
         listen 5671;\n\
         proxy_pass rabbitmq;\n\ 
     }\n\ 
-}' >> /etc/nginx/nginx.conf
-
-WORKDIR /var/www
+}' >> /etc/nginx/nginx.conf 
