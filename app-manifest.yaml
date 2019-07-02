@@ -471,8 +471,8 @@ spec:
     - name: replica-port
       port: 25672
       targetPort: 25672
-    # - port: 5671
-    #   name: amqp
+    - port: 5672
+      name: cluster-check
     - port: 4369
       name: epmd
   selector:
@@ -886,6 +886,8 @@ spec:
           rabbitmqctl set_policy ha-all "." '{"ha-mode":"exactly","ha-params":3,"ha-sync-mode":"automatic"}';
           ) & rabbitmq-server
       
+          # rabbitmqctl change_cluster_node_type ram;
+
           # if [ -z "$(grep rabbitmq /etc/resolv.conf)" ]; then
           #   sed "s/^search \([^ ]\+\)/search rabbitmq.\1 \1/" /etc/resolv.conf > /etc/resolv.conf.new;
           #   cat /etc/resolv.conf.new > /etc/resolv.conf;

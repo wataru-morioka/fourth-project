@@ -4,6 +4,7 @@ import (
     "sync"
     "os"
     "strings"
+    "errors"
     "crypto/tls"
     "github.com/streadway/amqp"
     "database/sql"
@@ -133,6 +134,8 @@ func consume(queueName string, quitChan chan struct{}, fatalChan chan error, wg 
                 workerQueue <- data
             }
         }
+        logrus.Error("キューサーバとの接続が切れました")
+        fatalChan <- errors.New("キューサーバとの接続が切れました")
     }()
 
     //ワーカースレッドの内部エラーを取得した場合、親スレッドに知らせる
