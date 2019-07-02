@@ -121,6 +121,22 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
+  name: suricata-log-pv-volume
+  labels:
+    type: suricata-log
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/log/suricata"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
   name: rabbitmq-data-pv-volume
   labels:
     type: rabbitmq-data
@@ -192,6 +208,21 @@ spec:
   selector:
     matchLabels:
       type: nginx-log
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: suricata-log-pv-claim
+spec:
+  selector:
+    matchLabels:
+      type: suricata-log
   storageClassName: manual
   accessModes:
     - ReadWriteOnce
@@ -428,6 +459,20 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: nginx-suricata-nodeport
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 80
+      targetPort: 80
+      nodePort: 31800
+  selector:
+    app: nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: nginx-authen-nodeport
 spec:
   type: NodePort
@@ -497,6 +542,7 @@ spec:
 
 #endregion
 
+#region nginx-suricata
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -520,10 +566,12 @@ spec:
         - containerPort: 50030
         - containerPort: 50050
         - containerPort: 80
-        command: ["/bin/bash", "-c", "nginx && tail -f /dev/null"]
+        command: ["/bin/bash", "-c", "nginx && suricata -c /etc/suricata/suricata.yaml -i eth0"]
         volumeMounts:
         - mountPath: /var/log/nginx
           name: nginx-persistent-storage 
+        - mountPath: /var/log/suricata
+          name: suricata-persistent-storage 
       volumes:
       - name: tls-secret
         secret:
@@ -531,6 +579,12 @@ spec:
       - name: nginx-persistent-storage
         persistentVolumeClaim:
           claimName: nginx-log-pv-claim
+      - name: suricata-persistent-storage
+        persistentVolumeClaim:
+          claimName: suricata-log-pv-claim
+#endregion
+
+#region go
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -698,6 +752,9 @@ spec:
       - name: go-app-persistent-storage
         persistentVolumeClaim:
           claimName: go-app-pv-claim
+#endregion
+
+#region rabbitmq
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -865,6 +922,9 @@ spec:
 #       # - name: tls-secret
 #       #   secret:
 #       #     secretName: rabbitmq-tls-secret
+#endregion
+
+#region oracle
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -943,6 +1003,9 @@ spec:
       resources:
         requests:
           storage: 7Gi
+#endregion
+
+#region twemproxy 
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -999,6 +1062,9 @@ spec:
           items:
             - key: twemproxy.yml
               path: twemproxy.yml 
+#endregion
+   
+#region redis
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -1083,5 +1149,6 @@ spec:
   #     resources:
   #       requests:
   #         storage: 100Mi
+#endregion
 
 
