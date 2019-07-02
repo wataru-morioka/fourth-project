@@ -542,12 +542,12 @@ spec:
 
 #endregion
 
-#region nginx-suricata
+#region nginx-suricata-tripwire
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-suricata
+  name: nginx-suricata-tripwire
 spec:
   replicas: 1
   selector:
