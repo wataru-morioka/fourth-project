@@ -429,32 +429,54 @@ spec:
       targetPort: 50050
   selector:
     app: go-socket
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: rabbitmq-cluster
+# spec:
+#   type: ClusterIP
+#   ports:
+#     - name: cluster-port
+#       port: 5671
+#       targetPort: 5671
+#   selector:
+#     app: rabbitmq
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: rabbitmq-cluster
+  labels:
+    app: rabbitmq
 spec:
   type: ClusterIP
+  # clusterIP: None
   ports:
-    - name: cluster-port
-      port: 5671
-      targetPort: 5671
+  - port: 5671
+    targetPort: 5671
+    name: rabbitmq
+  selector:
+    # statefulset.kubernetes.io/pod-name: rabbitmq-0
+    app: rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: replica-port
+      port: 25672
+      targetPort: 25672
+    # - port: 5671
+    #   name: amqp
+    - port: 4369
+      name: epmd
   selector:
     app: rabbitmq
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: rabbitmq-replica-cluster
-# spec:
-#   type: ClusterIP
-#   ports:
-#     - name: replica-port
-#       port: 25672
-#       targetPort: 25672
-#   selector:
-#     app: rabbitmq-replica
 # ---
 # apiVersion: v1
 # kind: Service
@@ -515,7 +537,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rabbitmq-management-nodeport
+  name: rabbitmq-0-management-nodeport
 spec:
   type: NodePort
   ports:
@@ -524,7 +546,21 @@ spec:
       targetPort: 15672
       nodePort: 31300
   selector:
-    app: rabbitmq
+    statefulset.kubernetes.io/pod-name: rabbitmq-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-1-management-nodeport
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 15672
+      targetPort: 15672
+      nodePort: 31301
+  selector:
+    statefulset.kubernetes.io/pod-name: rabbitmq-1
 ---
 apiVersion: v1
 kind: Service
@@ -560,7 +596,7 @@ spec:
     spec:
       containers:
       - name: nginx-server
-        image: watarumorioka/nginx-suricata-image
+        image: watarumorioka/nginx-suricata-tripwire-image
         imagePullPolicy: IfNotPresent
         env:
         - name: TRIPWIRE 
@@ -768,18 +804,18 @@ spec:
 #region rabbitmq
 ---
 apiVersion: apps/v1
-kind: Deployment
-# kind: StatefulSet
+# kind: Deployment
+kind: StatefulSet
 metadata:
   name: rabbitmq
 spec:
-  # serviceName: rabbitmq
-  replicas: 1
+  serviceName: rabbitmq
+  replicas: 2
   selector:
     matchLabels:
       app: rabbitmq
-  # updateStrategy:
-  #   type: RollingUpdate
+  updateStrategy:
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -815,28 +851,73 @@ spec:
             secretKeyRef:
               name: rabbitmq-secret
               key: rabbitmq_vhost
-        command: [ "sh", "/init-rabbitmq.sh" ]
+        # - name: RABBITMQ_ERLANG_COOKIE
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: rabbitmq-secret
+        #       key: erlang_cookie
         ports:
         - containerPort: 5671
         - containerPort: 15672
         - containerPort: 25672
+        command:
+        - /bin/bash
+        - -euc
+        - >
+          chmod 400 /var/lib/rabbitmq/.erlang.cookie;
+          ( sleep 30;
+          rm -rf /var/log/rabbitmq;
+          sed "s/^search \([^ ]\+\)/search rabbitmq.\1 \1/" /etc/resolv.conf > /etc/resolv.conf.new;
+          cat /etc/resolv.conf.new > /etc/resolv.conf;
+          rm /etc/resolv.conf.new;
+          until rabbitmqctl node_health_check; do sleep 1; done;
+          if [[ "$HOSTNAME" != "rabbitmq-0" && -z "$(rabbitmqctl cluster_status | grep rabbitmq-0)" ]]; then
+            rabbitmqctl stop_app;
+            rabbitmqctl join_cluster rabbit@rabbitmq-0;
+            rabbitmqctl start_app;
+          else 
+            rabbitmqctl add_user ${ADMIN_USER} ${ADMIN_PASSWORD} ;
+            rabbitmqctl set_user_tags ${ADMIN_USER} administrator;
+            rabbitmqctl add_user ${RABBITMQ_USER} ${RABBITMQ_PASSWORD} ; 
+            rabbitmqctl add_vhost ${RABBITMQ_VHOST} ; 
+            rabbitmqctl set_permissions -p / ${ADMIN_USER}  ".*" ".*" ".*" ; 
+            rabbitmqctl set_permissions -p ${RABBITMQ_VHOST} ${RABBITMQ_USER}  ".*" ".*" ".*" ; 
+          fi;
+          rabbitmqctl set_policy ha-all "." '{"ha-mode":"exactly","ha-params":3,"ha-sync-mode":"automatic"}';
+          ) & rabbitmq-server
+      
+          # if [ -z "$(grep rabbitmq /etc/resolv.conf)" ]; then
+          #   sed "s/^search \([^ ]\+\)/search rabbitmq.\1 \1/" /etc/resolv.conf > /etc/resolv.conf.new;
+          #   cat /etc/resolv.conf.new > /etc/resolv.conf;
+          #   rm /etc/resolv.conf.new;
+          # fi;
         volumeMounts:
-        - mountPath: /var/log/rabbitmq
-          name: rabbitmq-log-persistent-storage
-        - mountPath: /var/lib/rabbitmq
-          name: rabbitmq-data-persistent-storage
+        # - mountPath: /var/log/rabbitmq
+        #   name: rabbitmq-log-persistent-storage
+        # - mountPath: /var/lib/rabbitmq
+        #   name: rabbitmq-data-persistent-storage
         - mountPath: /etc/ssl/private
           name: tls-secret
+        - name: configmap
+          mountPath: /rabbitmqconfig
       volumes:
-      - name: rabbitmq-log-persistent-storage
-        persistentVolumeClaim:
-          claimName: rabbitmq-log-pv-claim
-      - name: rabbitmq-data-persistent-storage
-        persistentVolumeClaim:
-          claimName: rabbitmq-data-pv-claim
+      # - name: rabbitmq-log-persistent-storage
+      #   persistentVolumeClaim:
+      #     claimName: rabbitmq-log-pv-claim
+      # - name: rabbitmq-data-persistent-storage
+      #   persistentVolumeClaim:
+      #     claimName: rabbitmq-data-pv-claim
       - name: tls-secret
         secret:
           secretName: rabbitmq-tls-secret
+      - name: configmap
+        configMap:
+          name: rabbitmq-conf
+          items:
+          - key: rabbitmq.conf
+            path: rabbitmq.conf
+          - key: enabled_plugins
+            path: enabled_plugins
   # volumeClaimTemplates:
   # - metadata:
   #     name: rabbitmq-data-pv-claim
