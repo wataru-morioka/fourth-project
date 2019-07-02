@@ -572,7 +572,15 @@ spec:
         - containerPort: 50030
         - containerPort: 50050
         # - containerPort: 80
-        command: ["/bin/bash", "-c", "nginx && /etc/init.d/postfix restart && echo ${TRIPWIRE} | tripwire --init && suricata -c /etc/suricata/suricata.yaml -i eth0"]
+        # command: ["/bin/bash", "-c", "nginx && /etc/init.d/postfix restart && echo ${TRIPWIRE} | tripwire --init && suricata -c /etc/suricata/suricata.yaml -i eth0"]
+        command:
+        - "/bin/bash"
+        - "-c"
+        - >
+          nginx;
+          etc/init.d/postfix restart;
+          echo ${TRIPWIRE} | tripwire --init;
+          suricata -c /etc/suricata/suricata.yaml -i eth0;
         volumeMounts:
         - mountPath: /var/log/nginx
           name: nginx-persistent-storage 
