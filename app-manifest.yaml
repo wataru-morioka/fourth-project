@@ -47,7 +47,7 @@ metadata:
 spec:
   storageClassName: manual
   capacity:
-    storage: 7Gi
+    storage: 10Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
@@ -455,20 +455,20 @@ spec:
 #       targetPort: 25672
 #   selector:
 #     app: rabbitmq-replica
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-suricata-nodeport
-spec:
-  type: NodePort
-  ports:
-    - name: nodeport
-      port: 80
-      targetPort: 80
-      nodePort: 31800
-  selector:
-    app: nginx
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: nginx-suricata-nodeport
+# spec:
+#   type: NodePort
+#   ports:
+#     - name: nodeport
+#       port: 80
+#       targetPort: 80
+#       nodePort: 31800
+#   selector:
+#     app: nginx
 ---
 apiVersion: v1
 kind: Service
@@ -562,20 +562,23 @@ spec:
       - name: nginx-server
         image: watarumorioka/nginx-suricata-image
         imagePullPolicy: IfNotPresent
+        env:
+        - name: TRIPWIRE 
+          valueFrom:
+            secretKeyRef: 
+              name: tripwire-secret
+              key: password
         ports:
         - containerPort: 50030
         - containerPort: 50050
-        - containerPort: 80
-        command: ["/bin/bash", "-c", "nginx && suricata -c /etc/suricata/suricata.yaml -i eth0"]
+        # - containerPort: 80
+        command: ["/bin/bash", "-c", "nginx && /etc/init.d/postfix restart && echo ${TRIPWIRE} | tripwire --init && suricata -c /etc/suricata/suricata.yaml -i eth0"]
         volumeMounts:
         - mountPath: /var/log/nginx
           name: nginx-persistent-storage 
         - mountPath: /var/log/suricata
           name: suricata-persistent-storage 
       volumes:
-      - name: tls-secret
-        secret:
-          secretName: tls-secret
       - name: nginx-persistent-storage
         persistentVolumeClaim:
           claimName: nginx-log-pv-claim
@@ -1002,7 +1005,7 @@ spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 7Gi
+          storage: 10Gi
 #endregion
 
 #region twemproxy 

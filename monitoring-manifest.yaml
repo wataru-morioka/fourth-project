@@ -168,9 +168,9 @@ spec:
         - name: prometheus-conf
           mountPath: /mnt/etc/
           # mountPath: /etc/prometheus
-        - name: data-volume
-          mountPath: /mnt/data/
         - name: prometheus-persistent-storage
+          mountPath: /mnt/data/
+        - name: data-volume
           mountPath: /var/run/secrets
       volumes:
       - name: prometheus-conf
