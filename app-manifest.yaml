@@ -9,38 +9,6 @@ provisioner:  kubernetes.io/no-provisioner
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: redis-pv-volume
-  labels:
-    type: redis
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 100Mi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain 
-  hostPath:
-    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/redis"
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: redis-log-pv-volume
-  labels:
-    type: redis-log
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 100Mi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain 
-  hostPath:
-    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/log/redis"
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
   name: oracle-pv-volume
   labels:
     type: oracle
@@ -53,38 +21,6 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   hostPath:
     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/oracle"
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: rabbitmq-log-pv-volume
-  labels:
-    type: rabbitmq-log
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 100Mi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/log/rabbitmq"
-# ---
-# apiVersion: v1
-# kind: PersistentVolume
-# metadata:
-#   name: rabbitmq-replica-log-pv-volume
-#   labels:
-#     type: rabbitmq-replica-log
-# spec:
-#   storageClassName: manual
-#   capacity:
-#     storage: 100Mi
-#   accessModes:
-#     - ReadWriteOnce
-#   persistentVolumeReclaimPolicy: Retain
-#   hostPath:
-#     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/log/rabbitmq-replica"
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -133,72 +69,9 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   hostPath:
     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/log/suricata"
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: rabbitmq-data-pv-volume
-  labels:
-    type: rabbitmq-data
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 100Mi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: "/Users/moriokawataru/Kubernetes/PersistentVolume/rabbitmq"
-# ---
-# apiVersion: v1
-# kind: PersistentVolume
-# metadata:
-#   name: rabbitmq-replica-data-pv-volume
-#   labels:
-#     type: rabbitmq-replica-data
-# spec:
-#   storageClassName: manual
-#   capacity:
-#     storage: 100Mi
-#   accessModes:
-#     - ReadWriteOnce
-#   persistentVolumeReclaimPolicy: Retain
-#   hostPath:
-#     path: "/Users/moriokawataru/Kubernetes/PersistentVolume/rabbitmq-replica"
-
 #endregion
 
 #region pvc
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: rabbitmq-log-pv-claim
-spec:
-  selector:
-    matchLabels:
-      type: rabbitmq-log
-  storageClassName: manual
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi
-# ---
-# apiVersion: v1
-# kind: PersistentVolumeClaim
-# metadata:
-#   name: rabbitmq-replica-log-pv-claim
-# spec:
-#   selector:
-#     matchLabels:
-#       type: rabbitmq-replica-log
-#   storageClassName: manual
-#   accessModes:
-#     - ReadWriteOnce
-#   resources:
-#     requests:
-#       storage: 100Mi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -244,82 +117,6 @@ spec:
   resources:
     requests:
       storage: 500Mi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: rabbitmq-data-pv-claim
-spec:
-  selector:
-    matchLabels:
-      type: rabbitmq-data
-  storageClassName: manual
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi
-# ---
-# apiVersion: v1
-# kind: PersistentVolumeClaim
-# metadata:
-#   name: rabbitmq-replica-data-pv-claim
-# spec:
-#   selector:
-#     matchLabels:
-#       type: rabbitmq-replica-data
-#   storageClassName: manual
-#   accessModes:
-#     - ReadWriteOnce
-#   resources:
-#     requests:
-#       storage: 100Mi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: redis-pv-claim
-spec:
-  selector:
-    matchLabels:
-      type: redis
-  storageClassName: manual
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi
-# ---
-# apiVersion: v1
-# kind: PersistentVolumeClaim
-# metadata:
-#   name: redis-log-pv-claim
-# spec:
-#   selector:
-#     matchLabels:
-#       type: redis-log
-#   storageClassName: manual
-#   accessModes:
-#     - ReadWriteOnce
-#   resources:
-#     requests:
-#       storage: 100Mi
-# ---
-# apiVersion: v1
-# kind: PersistentVolumeClaim
-# metadata:
-#   name: oracle-pv-claim
-# spec:
-#   selector:
-#     matchLabels:
-#       type: oracle
-#   storageClassName: manual
-#   accessModes:
-#     - ReadWriteOnce
-#   resources:
-#     requests:
-#       storage: 7Gi
-
 #endregion
 
 #region service
@@ -899,20 +696,14 @@ spec:
 
         volumeMounts:
         # - mountPath: /var/log/rabbitmq
-        #   name: rabbitmq-log-persistent-storage
+        #   name: rabbitmq-log-pv-claim
         # - mountPath: /var/lib/rabbitmq
-        #   name: rabbitmq-data-persistent-storage
+        #   name: rabbitmq-data
         - mountPath: /etc/ssl/private
           name: tls-secret
         - name: configmap
           mountPath: /rabbitmqconfig
       volumes:
-      # - name: rabbitmq-log-persistent-storage
-      #   persistentVolumeClaim:
-      #     claimName: rabbitmq-log-pv-claim
-      # - name: rabbitmq-data-persistent-storage
-      #   persistentVolumeClaim:
-      #     claimName: rabbitmq-data-pv-claim
       - name: tls-secret
         secret:
           secretName: rabbitmq-tls-secret
@@ -926,12 +717,9 @@ spec:
             path: enabled_plugins
   # volumeClaimTemplates:
   # - metadata:
-  #     name: rabbitmq-data-pv-claim
+  #     name: rabbitmq-data
   #   spec:
-  #     selector:
-  #       matchLabels:
-  #         type: rabbitmq-data
-  #     storageClassName: manual 
+  #     storageClassName: hostPath
   #     accessModes: [ "ReadWriteOnce" ]
   #     resources:
   #       requests:
@@ -939,10 +727,7 @@ spec:
   # - metadata:
   #     name: rabbitmq-log-pv-claim
   #   spec:
-  #     selector:
-  #       matchLabels:
-  #         type: rabbitmq-log
-  #     storageClassName: manual 
+  #     storageClassName: hostPath 
   #     accessModes: [ "ReadWriteOnce" ]
   #     resources:
   #       requests:
