@@ -1,6 +1,9 @@
 # FROM nginx:1.17
 FROM ubuntu:18.04
 # Install basics
+RUN mkdir /usr/local/init-check 
+ADD ./authen-service-check.sh /usr/local/init-check/authen-service-check.sh
+RUN chmod 660 /usr/local/init-check/authen-service-check.sh 
 RUN apt-get update \
  && apt-get install -y iproute2 iputils-ping software-properties-common vim curl tzdata nginx \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
@@ -48,5 +51,3 @@ RUN echo "Y" | twadmin -m G -S /etc/tripwire/site.key -Q wataru \
  && postmap /etc/postfix/gmail 
 
 ADD ./main.cf /etc/postfix/main.cf
-
-# RUN /etc/init.d/postfix restart 
