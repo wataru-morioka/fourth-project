@@ -412,7 +412,7 @@ spec:
         - "/bin/bash"
         - "-c"
         - >
-          sleep 20;
+          sleep 30;
           nginx;
           etc/init.d/postfix restart;
           echo ${TRIPWIRE} | tripwire --init;
@@ -420,9 +420,9 @@ spec:
         livenessProbe:
           exec:
             command: ["sh", "/usr/local/init-check/authen-service-check.sh"]
-          initialDelaySeconds: 20
+          # initialDelaySeconds: 20
           failureThreshold: 3
-          periodSeconds: 10
+          periodSeconds: 5
         volumeMounts:
         - mountPath: /var/log/nginx
           name: nginx-persistent-storage 
