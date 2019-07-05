@@ -11,9 +11,8 @@ import (
     "database/sql"
     _"github.com/mattn/go-oci8"
     "math/rand"
-    //TODO 使用ライブラリ変更→redigo
-    // redigo "github.com/gomodule/redigo/redis"
-    "github.com/go-redis/redis"
+    redigo "github.com/gomodule/redigo/redis"
+    // "github.com/go-redis/redis"
     "time"
     "google.golang.org/grpc/credentials"
     "google.golang.org/grpc/grpclog"
@@ -35,11 +34,13 @@ const (
     dbConnectionInfo = "Go/go@oracle-nodeport:1521/ThirdProject"
 )
 
-var redisClient = redis.NewClient(&redis.Options{
-    Addr:     "twemproxy-cluster:6222",
-    // Password: "redis",
-    DB:       0,  // use default DB
-})
+// var redisClient = redis.NewClient(&redis.Options{
+//     Addr:     "twemproxy-cluster:6222",
+//     // Password: "redis",
+//     DB:       0,  // use default DB
+// })
+
+var redisConn redigo.Conn
 
 type User struct {
     Seq uint64
@@ -256,11 +257,17 @@ func (s *server) Login(ctx context.Context, request *pb.LoginRequest) (*pb.Login
 func (s *server) Logout(ctx context.Context, request *pb.LogoutRequest) (*pb.LogoutResult, error) {
     logrus.Info("Logout Request from:", request.SessionId)
 
-    _, err := redisClient.Del(request.SessionId).Result()
+    // _, err := redisClient.Del(request.SessionId).Result()
+    // if err != nil {
+    //     logrus.Error(err)
+    //     return &pb.LogoutResult{Result: false}, nil
+    // }
+    _, err := redisConn.Do("Del", request.SessionId)
     if err != nil {
         logrus.Error(err)
-        return &pb.LogoutResult{Result: false}, nil
+        return &pb.LogoutResult{Result: false}, nil 
     }
+
     logrus.Info("セッションキャッシュクリア完了:", request.SessionId)
     return &pb.LogoutResult{Result: true}, nil
 }
@@ -271,9 +278,14 @@ func (s *server) MaintainSession(ctx context.Context, request *pb.MaintenanceReq
     logrus.Info("Session Request from:", request.UserId)
 
 	//セッションの有効期限延長
-	err := redisClient.Set(request.SessionId, request.UserId, 100*time.Second).Err()
+	// err := redisClient.Set(request.SessionId, request.UserId, 100*time.Second).Err()
+    // if err != nil {
+	// 	logrus.Error("redis.Client.Set Error:", err)
+    //     return &pb.MaintenanceResult{Result: false}, nil 
+    // }
+    _, err := redisConn.Do("Set", request.SessionId, request.UserId, "EX", "100")
     if err != nil {
-		logrus.Error("redis.Client.Set Error:", err)
+        logrus.Error(err)
         return &pb.MaintenanceResult{Result: false}, nil 
     }
 
@@ -293,18 +305,17 @@ func randString(n int) string {
 //セッションをキャッシュにセット
 func setSession(sessionId string, userId string) error {
     logrus.Info(sessionId)
-    err := redisClient.Set(sessionId, userId, 100*time.Second).Err()
+    // err := redisClient.Set(sessionId, userId, 100*time.Second).Err()
+    // if err != nil {
+    //     return err
+    // }
+
+    _, err := redisConn.Do("Set", sessionId, userId, "EX", "100")
     if err != nil {
+        logrus.Error(err)
         return err
     }
-    // redisConn, err := redigo.Dial("tcp", "twemproxy-cluster:6222")
-    // if err != nil {
-    //     return err
-    // }
-    // _, err = redisConn.Do("Set", sessionId, userId, "EX", "100")
-    // if err != nil {
-    //     return err
-    // }
+    
     return nil
 }
 
@@ -318,6 +329,12 @@ func main() {
     }
     
     logrus.Info("Run server port:", port)
+
+    redisConn, err = redigo.Dial("tcp", "twemproxy-cluster:6222")
+    if err != nil {
+        logrus.Error(err)
+        return
+    }
 
     // grpcServer := grpc.NewServer()
 

@@ -9,8 +9,9 @@ import (
     "time"
 	pb "./pb-socket"
 	"database/sql"
-    _"github.com/mattn/go-oci8"
-	"github.com/go-redis/redis"
+	_"github.com/mattn/go-oci8"
+	redigo "github.com/gomodule/redigo/redis"
+	// "github.com/go-redis/redis"
 	"strconv"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
@@ -32,11 +33,13 @@ const (
 	others = "others"
 )
 
-var redisClient = redis.NewClient(&redis.Options{
-	Addr:     "twemproxy-cluster:6222",
-	// Password: "redis",
-	DB:       0,  // use default DB
-})
+// var redisClient = redis.NewClient(&redis.Options{
+// 	Addr:     "twemproxy-cluster:6222",
+// 	// Password: "redis",
+// 	DB:       0,  // use default DB
+// })
+
+var redisConn redigo.Conn
 
 // gRPC struct
 type server struct {
@@ -545,12 +548,18 @@ func getOthersQuestionResult(request *pb.InfoRequest, stream pb.Socket_GetNewInf
 
 //セッションIDからユーザID取得
 func getUserId(sessionId string) (string, error){
-	userId, err := redisClient.Get(sessionId).Result()
-    if err != nil {
-		logrus.Info("セッションのキャッシュが削除されております:", sessionId)
-		return userId, err
-	}
+	// userId, err := redisClient.Get(sessionId).Result()
+    // if err != nil {
+	// 	logrus.Info("セッションのキャッシュが削除されております:", sessionId)
+	// 	return userId, err
+	// }
 
+    userId, err := redigo.String(redisConn.Do("GET", sessionId))
+    if err != nil {
+        logrus.Info("セッションのキャッシュが削除されております:", sessionId)
+        return userId, err
+	}
+	
 	return userId, nil
 }
 
@@ -561,6 +570,12 @@ func main() {
         logrus.Fatalf("lfailed to listen: %v", err)
     }
 	logrus.Info("Run server port:", port)
+
+	redisConn, err = redigo.Dial("tcp", "twemproxy-cluster:6222")
+    if err != nil {
+		logrus.Error(err)
+        return
+    }
 	
 	// grpcServer := grpc.NewServer()
 
