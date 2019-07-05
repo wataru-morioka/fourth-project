@@ -1,26 +1,23 @@
 FROM golang:1.11.1
 # Install basics
 RUN apt-get update \
- && apt-get install -y vim git zip wget
-
-# Install grpc, protoc-gen-go
-RUN go get -u google.golang.org/grpc \
- && go get -u github.com/golang/protobuf/protoc-gen-go
-
-# Install protoc
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip \
+ && apt-get install -y vim git zip wget \
+ && go get -u google.golang.org/grpc \
+ && go get -u github.com/golang/protobuf/protoc-gen-go \
+ && wget https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip \
  && unzip protoc-3.6.1-linux-x86_64.zip -d protoc \
  && cd protoc \
- && mv bin/protoc /usr/bin
-
-RUN go get github.com/streadway/amqp
-RUN go get github.com/go-redis/redis
-RUN go get google.golang.org/api/option
-RUN go get github.com/sirupsen/logrus
-RUN go get gopkg.in/natefinch/lumberjack.v2
-RUN go get firebase.google.com/go
-RUN go get firebase.google.com/go/messaging
-RUN /bin/cp -f /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+ && mv bin/protoc /usr/bin \
+ && go get github.com/streadway/amqp \
+ && go get github.com/go-redis/redis \
+ && go get github.com/gomodule/redigo/redis \
+ && go get github.com/jinzhu/gorm \
+ && go get google.golang.org/api/option \
+ && go get github.com/sirupsen/logrus \
+ && go get gopkg.in/natefinch/lumberjack.v2 \
+ && go get firebase.google.com/go \
+ && go get firebase.google.com/go/messaging \
+ && /bin/cp -f /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
 ENV PATH $PATH:$GOPATH/bin
 
@@ -28,7 +25,6 @@ WORKDIR /usr/local
 RUN mkdir instantclient_19_3 
 ADD ./instantclient_19_3/ /usr/local/instantclient_19_3/
 ADD ./oci8.pc /usr/lib/pkgconfig/oci8.pc
-#ADD ./go-bash.profile /root/.bash_profile
 ADD ./go-bash.profile /root/.bashrc
 WORKDIR /go/src
 ADD ./init.sh /go/src/init.sh 

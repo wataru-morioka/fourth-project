@@ -12,10 +12,12 @@ import (
     _"github.com/mattn/go-oci8"
     "math/rand"
     //TODO 使用ライブラリ変更→redigo
+    // redigo "github.com/gomodule/redigo/redis"
     "github.com/go-redis/redis"
     "time"
     "google.golang.org/grpc/credentials"
     "google.golang.org/grpc/grpclog"
+    // "github.com/jinzhu/gorm"
     service "./service"
     logrus "github.com/sirupsen/logrus"
     // "io/ioutil"
@@ -38,6 +40,17 @@ var redisClient = redis.NewClient(&redis.Options{
     // Password: "redis",
     DB:       0,  // use default DB
 })
+
+type User struct {
+    Seq uint64
+    UserId string
+    Password string
+    Token string
+    Status int
+    DeleteFlag bool
+    CreatedDateTime time.Time
+    Modifieddatetime time.Time
+}
 
 // gRPC struct
 type server struct {
@@ -193,7 +206,7 @@ func (s *server) Login(ctx context.Context, request *pb.LoginRequest) (*pb.Login
     sb.WriteString("    status")
     sb.WriteString(" from users")
     sb.WriteString(" where")
-    sb.WriteString("    userid = :param1")
+    sb.WriteString("    userId = :param1")
     sb.WriteString("    and password = :param2")
 
     stmt, err := db.Prepare(sb.String())
@@ -284,6 +297,14 @@ func setSession(sessionId string, userId string) error {
     if err != nil {
         return err
     }
+    // redisConn, err := redigo.Dial("tcp", "twemproxy-cluster:6222")
+    // if err != nil {
+    //     return err
+    // }
+    // _, err = redisConn.Do("Set", sessionId, userId, "EX", "100")
+    // if err != nil {
+    //     return err
+    // }
     return nil
 }
 
