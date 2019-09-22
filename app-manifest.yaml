@@ -499,6 +499,7 @@ spec:
       - name: go-socket-server
         image: watarumorioka/go-image
         imagePullPolicy: IfNotPresent
+        # command: ["tail", "-f", "/dev/null"]
         command: ["/go/src/init.sh"]
         args: ["/go/src/gRPC/socket-server.go"]
         ports:
@@ -701,20 +702,20 @@ spec:
         #   name: rabbitmq-data
         - mountPath: /etc/ssl/private
           name: tls-secret
-        - name: configmap
-          mountPath: /rabbitmqconfig
+        # - name: configmap
+        #   mountPath: /rabbitmqconfig
       volumes:
       - name: tls-secret
         secret:
           secretName: rabbitmq-tls-secret
-      - name: configmap
-        configMap:
-          name: rabbitmq-conf
-          items:
-          - key: rabbitmq.conf
-            path: rabbitmq.conf
-          - key: enabled_plugins
-            path: enabled_plugins
+      # - name: configmap
+      #   configMap:
+      #     name: rabbitmq-conf
+      #     items:
+      #     # - key: rabbitmq.conf
+      #     #   path: rabbitmq.conf
+      #     - key: enabled_plugins
+      #       path: enabled_plugins
   # volumeClaimTemplates:
   # - metadata:
   #     name: rabbitmq-data
