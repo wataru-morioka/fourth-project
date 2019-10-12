@@ -34,6 +34,7 @@ const (
 	others = "others"
 )
 
+// redis負荷分散のため、中継のtwemproxyに接続
 var redisClient = redis.NewClient(&redis.Options{
 	Addr:     "twemproxy-cluster:6222",
 	// Password: "redis",

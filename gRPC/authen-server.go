@@ -330,6 +330,7 @@ func main() {
     
     logrus.Info("Run server port:", port)
 
+    // redis負荷分散のため、中継のtwemproxyに接続
     redisConn, err = redigo.Dial("tcp", "twemproxy-cluster:6222")
     if err != nil {
         logrus.Error(err)

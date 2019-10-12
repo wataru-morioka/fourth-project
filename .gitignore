@@ -3,5 +3,6 @@
 /instantclient_19_3/
 /gRPC/key/
 /gRPC/logs/
+/gRPC/service_account.json
 /.erlang.cookie
 /gmail
