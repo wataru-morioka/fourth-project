@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: argo-ui-nodeport
+  namespace: argo
+spec:
+  type: NodePort
+  ports:
+    - name: nodeport
+      port: 8001
+      targetPort: 8001
+      nodePort: 30000
+  selector:
+    app: argo-ui
+

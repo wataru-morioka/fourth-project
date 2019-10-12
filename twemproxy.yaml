@@ -1,0 +1,10 @@
+local:
+  listen: 0.0.0.0:63791
+  hash: fnv1a_64
+  hash_tag: "{}"
+  distribution: ketama
+  timeout: 500
+  redis: true
+  servers:
+    - redis-0-service:6379:1
+    - redis-1-service:6379:1

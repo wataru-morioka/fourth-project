@@ -6,10 +6,12 @@ import (
     "context"
     "net"
     "google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
     "time"
 	pb "./pb-socket"
 	"database/sql"
-    _"github.com/mattn/go-oci8"
+	_"github.com/mattn/go-oci8"
+	// redigo "github.com/gomodule/redigo/redis"
 	"github.com/go-redis/redis"
 	"strconv"
 	"google.golang.org/grpc/credentials"
@@ -32,11 +34,14 @@ const (
 	others = "others"
 )
 
+// redis負荷分散のため、中継のtwemproxyに接続
 var redisClient = redis.NewClient(&redis.Options{
-	Addr:     "redis-nodeport:6379",
-	Password: "redis",
+	Addr:     "twemproxy-cluster:6222",
+	// Password: "redis",
 	DB:       0,  // use default DB
 })
+
+// var redisConn redigo.Conn
 
 // gRPC struct
 type server struct {
@@ -301,6 +306,7 @@ func getMyQuestionResult(request *pb.InfoRequest, stream pb.Socket_GetNewInfoSer
 							time.Sleep(1 * time.Second)
 							count++
 							if (count == 10) {
+								logrus.Error("クライアントへの送信に10回連続失敗")
 								errChan <- err
 								return
 							}
@@ -551,6 +557,12 @@ func getUserId(sessionId string) (string, error){
 		return userId, err
 	}
 
+    // userId, err := redigo.String(redisConn.Do("GET", sessionId))
+    // if err != nil {
+    //     logrus.Info("セッションのキャッシュが削除されております:", sessionId)
+    //     return userId, err
+	// }
+	
 	return userId, nil
 }
 
@@ -561,6 +573,12 @@ func main() {
         logrus.Fatalf("lfailed to listen: %v", err)
     }
 	logrus.Info("Run server port:", port)
+
+	// redisConn, err = redigo.Dial("tcp", "twemproxy-cluster:6222")
+    // if err != nil {
+	// 	logrus.Error(err)
+    //     return
+    // }
 	
 	// grpcServer := grpc.NewServer()
 
@@ -568,7 +586,12 @@ func main() {
     if err != nil {
         grpclog.Fatalf("Failed to generate credentials %v", err)
     }
-	grpcServer := grpc.NewServer(grpc.Creds(creds))
+	grpcServer := grpc.NewServer(
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			Time: 60 * time.Second,
+		}),
+		grpc.Creds(creds),
+	)
 	
     pb.RegisterSocketServer(grpcServer, &server{})
     if err := grpcServer.Serve(lis); err != nil {

@@ -1,6 +1,8 @@
 #!/bin/bash
+
 cd /root
-. .bashrc
+source .bashrc
 go get github.com/mattn/go-oci8
 cd /go/src/gRPC
-tail -f /dev/null
+#tail -f /dev/null
+go run $1
