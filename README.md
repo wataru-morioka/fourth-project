@@ -14,6 +14,7 @@
 - Redis負荷分散用中継サーバ（Twemproxy）  
 - メッセージングサーバ2台同期構成（RabbitMQ）  
 - リバースプロキシサーバ（Nginx）  
+※TLS末端はNginxではなく、APサーバ  
 - Docker管理（Kuberbetes for Mac）  
 ※各Dockerに充てるリソース制限に関しては未学習  
 ※マルチノード構成に関しては未学習  
