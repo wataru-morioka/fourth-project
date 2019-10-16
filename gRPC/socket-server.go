@@ -588,7 +588,7 @@ func main() {
     }
 	grpcServer := grpc.NewServer(
 		grpc.KeepaliveParams(keepalive.ServerParameters{
-			Time: 60 * time.Second,
+			MaxConnectionIdle: 5 * time.Minute,
 		}),
 		grpc.Creds(creds),
 	)

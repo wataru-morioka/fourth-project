@@ -3,7 +3,9 @@ FROM ubuntu:18.04
 # Install basics
 RUN mkdir /usr/local/init-check 
 ADD ./authen-service-check.sh /usr/local/init-check/authen-service-check.sh
-RUN chmod 660 /usr/local/init-check/authen-service-check.sh 
+ADD ./socket-service-check.sh /usr/local/init-check/socket-service-check.sh
+RUN chmod 660 /usr/local/init-check/authen-service-check.sh && \
+    chmod 660 /usr/local/init-check/socket-service-check.sh
 RUN apt-get update \
  && apt-get install -y iproute2 iputils-ping software-properties-common vim curl tzdata nginx \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
