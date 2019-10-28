@@ -15,7 +15,7 @@
 - メッセージングサーバ2台同期構成（RabbitMQ）  
 - リバースプロキシサーバ（Nginx）  
 ※TLS末端はNginxではなく、APサーバ  
-- Docker管理（Kuberbetes for Mac）  
+- Docker管理（Kubernetes for Mac）  
 ※各Dockerに充てるリソース制限に関しては未学習  
 ※マルチノード構成に関しては未学習  
 - ログ転送（Fluentd）、集積（ElasticSarch）、GUI管理 （Kibana）  
@@ -42,7 +42,7 @@
 - 制限時間を過ぎた質問の集計をし、DBを更新するバッチ処理  
 - 不要になったデータを削除整理するバッチ処理  
 - Nginxはアクセスロギングをし、各サーバにフォワーディング  
-- サーバに対する負荷分散はKuberbetesのNodePortを使用  
+- サーバに対する負荷分散はKubernetesのNodePortを使用  
 - 各サーバのヘルスチェック、復元をKubernetesで管理  
 ※キャッシュサーバがダウンした場合は、クライアントにアプリ再起動を促す  
 ※Nginx、各APサーバは随時自動で復旧し、アプリが正常に稼働することを確認  
